@@ -1412,8 +1412,8 @@ function buildStDrvs(){
     h+='<div style="margin-bottom:8px"><label class="fl">Name</label><input class="fi" type="text" value="'+e(d.name)+'" id="'+uid+'-name" placeholder="Driver name"></div>';
     h+='<div style="margin-bottom:10px"><label class="fl">Phone</label><input class="fi" type="tel" value="'+e(d.phone||'')+'" id="'+uid+'-phone" placeholder="+44..."></div>';
     h+='<div style="display:flex;gap:8px;align-items:center">';
-    h+='<button class="drv-save-btn" data-idx="'+idx+'" onclick="saveDrv(this)">Save changes</button>';
-    if(!isGeorge)h+='<button class="drv-del-btn" data-idx="'+idx+'" onclick="delDrv(this)">Remove driver</button>';
+    h+='<button class="drv-save-btn" data-name="'+e(d.name)+'" data-uid="'+uid+'" onclick="saveDrv(this)">Save changes</button>';
+    if(!isGeorge)h+='<button class="drv-del-btn" data-name="'+e(d.name)+'" onclick="delDrv(this)">Remove driver</button>';
     h+='</div></div></div>';
   });
   h+='<button class="al" style="margin-top:10px" onclick="addDrvPrompt()">+ Add driver</button>';
@@ -1430,26 +1430,27 @@ function stToggleDrv(uid){
 }
 
 function saveDrv(btn){
-  var idx=parseInt(btn.dataset.idx);
-  var uid='drv-'+idx;
-  var name=document.getElementById(uid+'-name').value.trim();
-  var phone=document.getElementById(uid+'-phone').value.trim();
-  if(!name)return;
-  drivers[idx].name=name;drivers[idx].phone=phone;
-  // Save to Supabase
-  supa.from('drivers').update({name:name,phone:phone}).eq('name',drivers[idx].name).then(function(r){
+  var oldName=btn.dataset.name;
+  var uid=btn.dataset.uid;
+  var d=drivers.find(function(x){return x.name===oldName;});
+  if(!d)return;
+  var newName=document.getElementById(uid+'-name').value.trim();
+  var newPhone=document.getElementById(uid+'-phone').value.trim();
+  if(!newName)return;
+  supa.from('drivers').update({name:newName,phone:newPhone}).eq('name',oldName).then(function(r){
     if(r.error)console.error('Save driver:',r.error);
   });
+  d.name=newName;d.phone=newPhone;
   buildStDrvs();
-  // Rebuild driver pickers on job page if open
 }
 
 function delDrv(btn){
-  var idx=parseInt(btn.dataset.idx);
-  var d=drivers[idx];
+  var name=btn.dataset.name;
+  var d=drivers.find(function(x){return x.name===name;});
+  if(!d)return;
   if(!confirm('Remove '+d.name+' from drivers?'))return;
   supa.from('drivers').update({active:false}).eq('name',d.name).then(function(){});
-  drivers.splice(idx,1);
+  drivers=drivers.filter(function(x){return x.name!==name;});
   buildStDrvs();
 }
 
