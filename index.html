@@ -548,7 +548,7 @@ var supa=supabase.createClient(SUPA_URL,SUPA_KEY);
 var CIDS=['cef23e708f7600f0b409cf05cdbe2d194adba4d9bf452b672d29071a0168013f@group.calendar.google.com','ca80a206893ad6a9207c439f6c5e717b00b9b27e62b8046a0b2d51149f483412@group.calendar.google.com','ea22b0534f25b59b65ad06b1f11b1f555f88b3a8618ccca362146e8bb206f1d1@group.calendar.google.com','7afb1b78ac69cacddc3d36f80a7ae0e0d972032e09e5713703e1a8f6bf8ccf7b@group.calendar.google.com','87ac669239d1087538709ae58c70be6fe56489fe3e65ea85c2727290c1877c28@group.calendar.google.com','2cf5309de3aeb285dd8ae664a694389a993c7db6b0b0e0c73288b3b1af6a9284@group.calendar.google.com','6effdc0135ec1b70dda331e3ebc26dbf3e71e65812ca842f4eabb362c86fc2e0@group.calendar.google.com','3fa1b62815b05a6ab5ff4c5b1dd7bceca4b0051ce819b71b253c04e0e77f5b66@group.calendar.google.com'];
 var CP=CIDS.map(function(c){return'cid='+encodeURIComponent(c);}).join('&');
 
-var TODAY='2026-06-26';
+var _td=new Date();var TODAY=_td.getFullYear()+'-'+((_td.getMonth()+1)<10?'0':'')+(_td.getMonth()+1)+'-'+(_td.getDate()<10?'0':'')+_td.getDate();
 var MAINS=['d','p','b','c','s'];
 var SCREENS=['d','p','b','c','s','j','add'];
 var hist=[],cur='d',CUR_JOB=null,PDN='',PDP='',idX=100,retOn=false,stopN=1,calY=2026,calM=5,calSel='2026-06-26';
@@ -1383,34 +1383,36 @@ function stToggle(id){
 
 function buildStDrvs(){
   var el=document.getElementById('st-drivers');if(!el)return;
-  // Sort: George always first, rest alphabetical
   var sorted=drivers.slice().sort(function(a,b){
-    if(a.name==='George')return -1;
-    if(b.name==='George')return 1;
+    if(a.name==='George')return -1;if(b.name==='George')return 1;
     return a.name>b.name?1:-1;
   });
-  var warnCount=0;
   var h='<div class="st-section-hdr" onclick="stToggle(\"st-drv-body\")">';
   h+='<div><div class="st-section-title">Drivers</div><div class="st-section-meta">'+sorted.length+' active</div></div>';
   h+='<span class="st-chevron open" id="chv-st-drv-body">&#9654;</span></div>';
-
   h+='<div class="st-body open" id="st-drv-body">';
-
   sorted.forEach(function(d,idx){
     var initials=d.name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
     var isGeorge=d.name==='George';
     var uid='drv-'+idx;
+    var waNum=(d.phone||'').replace(/[\s+()-]/g,'');
     h+='<div class="drv-card">';
+    // Card header — tap to expand
     h+='<div class="drv-card-hdr" data-uid="'+uid+'" onclick="stToggleDrvEl(this)">';
-    h+='<div class="drv-av'+(isGeorge?' george':'')+'" style="'+(isGeorge?'background:var(--red)':'background:var(--surf);color:var(--txt2);border:0.5px solid var(--blt2)')+'">'+e(initials)+'</div>';
-    h+='<div class="drv-info"><div class="drv-name">'+e(d.name)+(isGeorge?' <span style="font-size:10px;background:var(--red);color:#fff;padding:1px 6px;border-radius:99px;font-weight:700">Owner</span>':'')+'</div>';
+    h+='<div class="drv-av" style="background:'+(isGeorge?'var(--red)':'var(--surf2)')+';color:'+(isGeorge?'#fff':'var(--txt2)')+';border:'+(isGeorge?'none':'0.5px solid var(--blt2)')+'">'+e(initials)+'</div>';
+    h+='<div class="drv-info"><div class="drv-name">'+e(d.name)+(isGeorge?' <span style="font-size:10px;background:var(--red);color:#fff;padding:1px 7px;border-radius:99px;margin-left:4px">Owner</span>':'')+'</div>';
     h+='<div class="drv-phone">'+e(d.phone||'No number set')+'</div></div>';
-    h+='<span style="font-size:18px;color:var(--txt3)">&#8942;</span></div>';
+    // WhatsApp button
+    if(d.phone){
+      h+='<a href="https://wa.me/'+waNum+'" style="background:#1d9e75;color:#fff;border:none;border-radius:var(--r);padding:6px 10px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:4px" onclick="event.stopPropagation()">&#128172; WA</a>';
+    }
+    h+='<span style="font-size:18px;color:var(--txt3);margin-left:4px">&#8942;</span></div>';
+    // Edit body
     h+='<div class="drv-edit-body" id="'+uid+'">';
-    h+='<div class="drv-edit-row"><div style="flex:1"><label class="fl">Name</label><input class="fi" type="text" value="'+e(d.name)+'" id="'+uid+'-name" placeholder="Driver name"></div></div>';
-    h+='<div class="drv-edit-row"><div style="flex:1"><label class="fl">Phone</label><input class="fi" type="tel" value="'+e(d.phone||'')+'" id="'+uid+'-phone" placeholder="+44..."></div></div>';
-    h+='<div style="display:flex;gap:8px;align-items:center;margin-top:4px">';
-    h+='<button class="drv-save-btn" data-idx="'+idx+'" onclick="saveDrv(this)">Save</button>';
+    h+='<div style="margin-bottom:8px"><label class="fl">Name</label><input class="fi" type="text" value="'+e(d.name)+'" id="'+uid+'-name" placeholder="Driver name"></div>';
+    h+='<div style="margin-bottom:10px"><label class="fl">Phone</label><input class="fi" type="tel" value="'+e(d.phone||'')+'" id="'+uid+'-phone" placeholder="+44..."></div>';
+    h+='<div style="display:flex;gap:8px;align-items:center">';
+    h+='<button class="drv-save-btn" data-idx="'+idx+'" onclick="saveDrv(this)">Save changes</button>';
     if(!isGeorge)h+='<button class="drv-del-btn" data-idx="'+idx+'" onclick="delDrv(this)">Remove driver</button>';
     h+='</div></div></div>';
   });
@@ -1419,6 +1421,9 @@ function buildStDrvs(){
   el.innerHTML=h;
 }
 
+
+function stToggleDrvEl(el){stToggleDrv(el.dataset.uid);}
+function stToggleVehEl(el){stToggleVeh(el.dataset.uid);}
 function stToggleDrv(uid){
   var el=document.getElementById(uid);if(!el)return;
   el.classList.toggle('open');
