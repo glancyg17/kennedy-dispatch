@@ -377,7 +377,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 </head>
 <body>
 <div class="app">
-<div id="loading-overlay" style="display:flex;position:fixed;inset:0;background:#0c0b0b;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:20px;font-family:-apple-system,sans-serif"><img src="./logo.png" alt="Kennedy Executive Travel" style="width:220px;max-width:80vw;opacity:0.95"><div style="font-size:13px;color:#7a6f6f;font-weight:500;letter-spacing:0.05em">Loading...</div></div>
+<div id="loading-overlay" style="display:flex;position:fixed;inset:0;background:#0c0b0b;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:24px;font-family:-apple-system,sans-serif"><img src="./logo.png" alt="Kennedy Executive Travel" style="width:auto;height:auto;max-width:260px;max-height:160px;object-fit:contain;opacity:1"><div style="font-size:12px;color:#4a4040;font-weight:500;letter-spacing:0.08em;text-transform:uppercase">Loading...</div></div>
 
 <!-- ALWAYS-VISIBLE TOP CHROME -->
 <div class="chrome">
@@ -1684,6 +1684,17 @@ async function init(){
   subscribeRealtime();
 }
 init();
+
+// Register service worker for PWA install on Android
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/sw.js').then(function(reg){
+      console.log('SW registered');
+    }).catch(function(err){
+      console.log('SW registration failed:',err);
+    });
+  });
+}
 </script>
 </body>
 </html>
