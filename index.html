@@ -277,7 +277,66 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .avail-ack input{width:16px;height:16px;accent-color:var(--red);flex-shrink:0}
 .avail-ack-lbl{font-size:12px;color:var(--warntxt);font-weight:600}
 
-/* ── EXPIRY STATUS ── */
+
+/* ── SETTINGS REDESIGN ── */
+.st-section{border-bottom:0.5px solid var(--blt)}
+.st-section-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;background:var(--surf)}
+.st-section-hdr:active{background:var(--surf2)}
+.st-section-title{font-size:13px;font-weight:700;color:var(--txt)}
+.st-section-meta{font-size:11px;color:var(--txt3);font-weight:500;margin-top:1px}
+.st-chevron{font-size:14px;color:var(--txt3);transition:transform .2s;flex-shrink:0}
+.st-chevron.open{transform:rotate(90deg)}
+.st-body{display:none;padding:0 16px 14px}
+.st-body.open{display:block}
+
+/* Driver cards */
+.drv-card{background:var(--surf2);border-radius:var(--r);margin-bottom:8px;overflow:hidden;border:0.5px solid var(--blt2)}
+.drv-card-hdr{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer}
+.drv-card-hdr:active{background:var(--surf)}
+.drv-av{width:32px;height:32px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.drv-av.george{background:var(--red)}
+.drv-info{flex:1}
+.drv-name{font-size:14px;font-weight:600;color:var(--txt)}
+.drv-phone{font-size:11px;color:var(--txt3);font-weight:500;margin-top:1px}
+.drv-edit-body{display:none;padding:10px 12px 12px;border-top:0.5px solid var(--blt);background:var(--surf)}
+.drv-edit-body.open{display:block}
+.drv-edit-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:8px}
+.drv-edit-row .fi{flex:1;margin-bottom:0}
+.drv-save-btn{background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.drv-del-btn{background:transparent;border:none;color:var(--txt3);font-size:11px;cursor:pointer;font-family:inherit;font-weight:500;margin-top:4px;text-decoration:underline;padding:0}
+
+/* Vehicle cards */
+.veh-cat{margin-bottom:4px}
+.veh-cat-lbl{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;padding:10px 0 5px}
+.veh-card{background:var(--surf2);border-radius:var(--r);margin-bottom:6px;overflow:hidden;border:0.5px solid var(--blt2)}
+.veh-card.mot-warn{border-color:#d4a84a}
+.veh-card.mot-expired{border-color:#b02020}
+.veh-card-hdr{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;cursor:pointer}
+.veh-card-hdr:active{background:var(--surf)}
+.veh-card-name{font-size:13px;font-weight:700;color:var(--txt)}
+.veh-card-sub{font-size:11px;color:var(--txt3);font-weight:500;margin-top:1px}
+.mot-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0}
+.mot-ok{background:var(--okbg);color:var(--oktxt)}
+.mot-warn{background:var(--warnbg);color:var(--warntxt)}
+.mot-expired{background:#fcebeb;color:#b02020}
+.mot-unset{background:var(--surf);color:var(--txt3);border:0.5px solid var(--blt2)}
+.veh-edit-body{display:none;padding:10px 12px 12px;border-top:0.5px solid var(--blt);background:var(--surf)}
+.veh-edit-body.open{display:block}
+.mot-alert-banner{background:var(--warnbg);border:1px solid #d4a84a;border-radius:var(--r);padding:9px 12px;margin-bottom:10px}
+.mot-alert-banner h4{font-size:11px;font-weight:700;color:var(--warntxt);margin-bottom:4px}
+.mot-alert-row{font-size:12px;color:var(--warntxt);font-weight:600;padding:1px 0}
+.mot-expired-banner{background:#fcebeb;border:1px solid #f5c6c6;border-radius:var(--r);padding:9px 12px;margin-bottom:10px}
+.mot-expired-banner h4{font-size:11px;font-weight:700;color:#b02020;margin-bottom:4px}
+
+/* Airport pricing */
+.ap-row{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:0.5px solid var(--blt)}
+.ap-row:last-child{border-bottom:none}
+.ap-airport{font-size:12px;font-weight:600;color:var(--txt);width:90px;flex-shrink:0}
+.ap-pax{font-size:11px;color:var(--txt3);width:40px;flex-shrink:0}
+.ap-field{width:60px;font-family:inherit;font-size:12px;background:var(--surf2);border:1px solid var(--blt2);border-radius:6px;padding:5px 7px;color:var(--txt);font-weight:600;text-align:center}
+.ap-lbl{font-size:10px;color:var(--txt3);font-weight:600;text-align:center;margin-bottom:3px}
+.ap-notes{font-size:11px;color:var(--txt3);font-weight:500;margin-top:8px;line-height:1.6}
+/* __ EXPIRY STATUS __ */
 .exp-ok{color:var(--oktxt);font-size:11px;font-weight:600}
 .exp-upcoming{color:#7a4800;font-size:11px;font-weight:600}
 .exp-soon{color:#b02020;font-size:11px;font-weight:700}
@@ -433,41 +492,30 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 
 <!-- SETTINGS -->
 <div id="s-s" class="scr">
-  <div class="stsec"><h3>Drivers</h3><div id="std"></div><button class="al">+ Add driver</button></div>
-  <div class="stsec">
-    <h3>Fleet</h3>
-    <div id="stfleet"></div>
-    <button class="al">+ Add vehicle</button>
+  <div id="st-drivers" class="st-section"></div>
+  <div id="st-fleet" class="st-section"></div>
+  <div class="st-section">
+    <div class="st-section-hdr" onclick="stToggle(\"st-cals\")">
+      <div><div class="st-section-title">Google Calendars</div></div>
+      <span class="st-chevron" id="chv-st-cals">&#9654;</span>
+    </div>
+    <div class="st-body" id="st-cals">
+      <button onclick="window.open('https://calendar.google.com/calendar/r/week?'+CP)" style="width:100%;background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:11px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px">&#128197; View all vehicles</button>
+      <div style="margin-bottom:10px;font-size:12px;color:var(--txt2);font-weight:500;line-height:1.5">To get access on your phone, ask to be added as a viewer on each calendar.</div>
+      <div class="ci"><div class="cd" style="background:#9e1c1c"></div><div class="cin">G-Wagon</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=cef23e708f7600f0b409cf05cdbe2d194adba4d9bf452b672d29071a0168013f%40group.calendar.google.com')">Open</button></div>
+      <div class="ci"><div class="cd" style="background:#c8a45a"></div><div class="cin">Maybach</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=ca80a206893ad6a9207c439f6c5e717b00b9b27e62b8046a0b2d51149f483412%40group.calendar.google.com')">Open</button></div>
+      <div class="ci"><div class="cd" style="background:#378add"></div><div class="cin">Audi SQ7</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=ea22b0534f25b59b65ad06b1f11b1f555f88b3a8618ccca362146e8bb206f1d1%40group.calendar.google.com')">Open</button></div>
+      <div class="ci"><div class="cd" style="background:#1d9e75"></div><div class="cin">V-Class</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=2cf5309de3aeb285dd8ae664a694389a993c7db6b0b0e0c73288b3b1af6a9284%40group.calendar.google.com')">Open</button></div>
+      <div class="ci"><div class="cd" style="background:#534ab7"></div><div class="cin">Minibuses</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=6effdc0135ec1b70dda331e3ebc26dbf3e71e65812ca842f4eabb362c86fc2e0%40group.calendar.google.com')">Open</button></div>
+      <div class="ci"><div class="cd" style="background:#888780"></div><div class="cin">Standard / People carrier</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=3fa1b62815b05a6ab5ff4c5b1dd7bceca4b0051ce819b71b253c04e0e77f5b66%40group.calendar.google.com')">Open</button></div>
+    </div>
   </div>
-  <div class="stsec">
-    <h3>Google calendars</h3>
-    <button onclick="window.open('https://calendar.google.com/calendar/r/week?'+CP)" style="width:100%;background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:11px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px">&#128197; View all vehicles</button>
-    <div style="margin-bottom:10px;font-size:12px;color:var(--txt2);font-weight:500;line-height:1.5">Tap any calendar below to open it in Google Calendar. To get access on your phone, ask to be added as a viewer on each one.</div>
-    <div class="ci"><div class="cd" style="background:#9e1c1c"></div><div class="cin">G-Wagon</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=cef23e708f7600f0b409cf05cdbe2d194adba4d9bf452b672d29071a0168013f%40group.calendar.google.com')">Open</button></div>
-    <div class="ci"><div class="cd" style="background:#c8a45a"></div><div class="cin">Maybach</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=ca80a206893ad6a9207c439f6c5e717b00b9b27e62b8046a0b2d51149f483412%40group.calendar.google.com')">Open</button></div>
-    <div class="ci"><div class="cd" style="background:#378add"></div><div class="cin">Audi SQ7</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=ea22b0534f25b59b65ad06b1f11b1f555f88b3a8618ccca362146e8bb206f1d1%40group.calendar.google.com')">Open</button></div>
-    <div class="ci"><div class="cd" style="background:#1d9e75"></div><div class="cin">V-Class</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=2cf5309de3aeb285dd8ae664a694389a993c7db6b0b0e0c73288b3b1af6a9284%40group.calendar.google.com')">Open</button></div>
-    <div class="ci"><div class="cd" style="background:#534ab7"></div><div class="cin">Minibuses</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=6effdc0135ec1b70dda331e3ebc26dbf3e71e65812ca842f4eabb362c86fc2e0%40group.calendar.google.com')">Open</button></div>
-    <div class="ci"><div class="cd" style="background:#888780"></div><div class="cin">Standard / People carrier</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=3fa1b62815b05a6ab5ff4c5b1dd7bceca4b0051ce819b71b253c04e0e77f5b66%40group.calendar.google.com')">Open</button></div>
-  </div>
-  <div class="stsec">
-    <h3>Airport pricing</h3>
-    <table class="ptbl">
-      <thead><tr><th style="width:30%">Airport</th><th style="width:18%">Pax</th><th style="width:17%">Std</th><th style="width:17%">VIP</th><th style="width:18%">Bus</th></tr></thead>
-      <tbody>
-        <tr><td>Glasgow</td><td>1-4</td><td class="pg">£49</td><td class="pg">£149</td><td>—</td></tr>
-        <tr><td>Glasgow</td><td>5-8</td><td class="pg">£69</td><td class="pg">£199</td><td>—</td></tr>
-        <tr><td>Glasgow</td><td>9+</td><td>—</td><td>—</td><td class="pg">£109+</td></tr>
-        <tr><td>Edinburgh</td><td>1-4</td><td class="pg">£79</td><td class="pg">£199</td><td>—</td></tr>
-        <tr><td>Edinburgh</td><td>5-8</td><td class="pg">£89</td><td class="pg">£199</td><td>—</td></tr>
-        <tr><td>Edinburgh</td><td>9+</td><td>—</td><td>—</td><td class="pg">£129+</td></tr>
-        <tr><td>Manchester</td><td>1-4</td><td class="pg">£299</td><td class="pg">£599</td><td>—</td></tr>
-        <tr><td>Manchester</td><td>5-8</td><td class="pg">£449</td><td class="pg">£699</td><td>—</td></tr>
-        <tr><td>Liverpool</td><td>1-4</td><td class="pg">£299</td><td class="pg">£599</td><td>—</td></tr>
-        <tr><td>Liverpool</td><td>5-8</td><td class="pg">£449</td><td class="pg">£699</td><td>—</td></tr>
-      </tbody>
-    </table>
-    <div class="pn">+£20 unsociable hours (23:00-06:00) · +£49 drinks · +£49 trailer · +£5 unbooked drop-off</div>
+  <div class="st-section" id="st-pricing-sec">
+    <div class="st-section-hdr" onclick="stToggle(\"st-pricing\")">
+      <div><div class="st-section-title">Airport Pricing</div></div>
+      <span class="st-chevron" id="chv-st-pricing">&#9654;</span>
+    </div>
+    <div class="st-body" id="st-pricing"></div>
   </div>
 </div>
 
@@ -511,6 +559,19 @@ function vCol(v){if(!v)return'#7a6f6f';for(var k in VEH_COLORS){if(v.indexOf(k)>
 var drivers=[];
 
 // Fleet capacity — vehicles with a fixed count. Vehicles not listed here (Standard, People carrier) are treated as ample.
+
+var AP_PRICES=[
+  {airport:'Glasgow',pax:'1-4',std:'£49',vip:'£149',bus:'—'},
+  {airport:'Glasgow',pax:'5-8',std:'£69',vip:'£199',bus:'—'},
+  {airport:'Glasgow',pax:'9+',std:'—',vip:'—',bus:'£109+'},
+  {airport:'Edinburgh',pax:'1-4',std:'£79',vip:'£199',bus:'—'},
+  {airport:'Edinburgh',pax:'5-8',std:'£89',vip:'£199',bus:'—'},
+  {airport:'Edinburgh',pax:'9+',std:'—',vip:'—',bus:'£129+'},
+  {airport:'Manchester',pax:'1-4',std:'£299',vip:'£599',bus:'—'},
+  {airport:'Manchester',pax:'5-8',std:'£449',vip:'£699',bus:'—'},
+  {airport:'Liverpool',pax:'1-4',std:'£299',vip:'£599',bus:'—'},
+  {airport:'Liverpool',pax:'5-8',std:'£449',vip:'£699',bus:'—'}
+];
 var FLEET_CAPACITY={
   'G-Wagon':1,'Maybach':1,'Audi SQ7':1,'V-Class':1,'C-Class':1,'Cayenne':1,
   'Minibus 11':1,'Minibus 14':2,'Minibus 16':2
@@ -1310,48 +1371,228 @@ function renderList(){
 }
 
 /* ── SETTINGS DRIVERS ── */
-function buildStFleet(){
-  var el=document.getElementById('stfleet');if(!el)return;
-  // Alert banner for expired or expiring soon
-  var alerts=FLEET.filter(function(v){
-    var ms=expiryStatus(v.mot);var is=expiryStatus(v.ins);
-    return ms==='expired'||ms==='soon'||is==='expired'||is==='soon';
-  });
-  var h='';
-  if(alerts.length){
-    h+='<div class="fleet-alert-banner"><h4">⚠ Attention required</h4>';
-    alerts.forEach(function(v){
-      var ms=expiryStatus(v.mot);var is=expiryStatus(v.ins);
-      if(ms==='expired'||ms==='soon')h+='<div class="fleet-alert-row">'+e(v.name)+' — MOT: '+expiryLabel(v.mot)+'</div>';
-      if(is==='expired'||is==='soon')h+='<div class="fleet-alert-row">'+e(v.name)+' — Insurance: '+expiryLabel(v.ins)+'</div>';
-    });
-    h+='</div>';
-  }
-  FLEET.forEach(function(v){
-    var ms=expiryStatus(v.mot);var is=expiryStatus(v.ins);
-    h+='<div class="fleet-card">';
-    h+='<div class="fleet-name">'+e(v.name)+'<span style="font-size:11px;font-weight:500;color:var(--txt3);margin-left:8px">'+e(v.type)+' · up to '+v.pax+' pax</span></div>';
-    if(v.reg)h+='<div class="fleet-reg">'+e(v.reg)+'</div>';
-    h+='<div class="fleet-exp-row">';
-    h+='<div class="fleet-exp-item"><div class="fleet-exp-lbl">MOT</div>';
-    if(!v.mot)h+='<div class="exp-unset">Not set — tap to add</div>';
-    else h+='<div class="exp-'+(ms||'ok')+'">'+expiryLabel(v.mot)+'</div>';
-    h+='</div>';
-    h+='<div class="fleet-exp-item"><div class="fleet-exp-lbl">Insurance</div>';
-    if(!v.ins)h+='<div class="exp-unset">Not set — tap to add</div>';
-    else h+='<div class="exp-'+(is||'ok')+'">'+expiryLabel(v.ins)+'</div>';
-    h+='</div>';
-    h+='</div>';
-    if(v.notes)h+='<div style="font-size:11px;color:var(--txt3);margin-top:4px;font-weight:500">'+e(v.notes)+'</div>';
-    h+='</div>';
-  });
-  el.innerHTML=h;
+
+
+function stToggle(id){
+  var body=document.getElementById(id);
+  var chv=document.getElementById('chv-'+id);
+  if(!body)return;
+  var open=body.classList.toggle('open');
+  if(chv)chv.classList.toggle('open',open);
 }
 
 function buildStDrvs(){
-  var h='';drivers.forEach(function(d){h+='<div class="str"><div><div class="stn">'+e(d.name)+'</div><div class="sts">'+e(d.phone)+'</div></div><span class="pon">Active</span></div>';});
-  var el=document.getElementById('std');if(el)el.innerHTML=h;
+  var el=document.getElementById('st-drivers');if(!el)return;
+  // Sort: George always first, rest alphabetical
+  var sorted=drivers.slice().sort(function(a,b){
+    if(a.name==='George')return -1;
+    if(b.name==='George')return 1;
+    return a.name>b.name?1:-1;
+  });
+  var warnCount=0;
+  var h='<div class="st-section-hdr" onclick="stToggle(\"st-drv-body\")">';
+  h+='<div><div class="st-section-title">Drivers</div><div class="st-section-meta">'+sorted.length+' active</div></div>';
+  h+='<span class="st-chevron open" id="chv-st-drv-body">&#9654;</span></div>';
+
+  h+='<div class="st-body open" id="st-drv-body">';
+
+  sorted.forEach(function(d,idx){
+    var initials=d.name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    var isGeorge=d.name==='George';
+    var uid='drv-'+idx;
+    h+='<div class="drv-card">';
+    h+='<div class="drv-card-hdr" data-uid="'+uid+'" onclick="stToggleDrvEl(this)">';
+    h+='<div class="drv-av'+(isGeorge?' george':'')+'" style="'+(isGeorge?'background:var(--red)':'background:var(--surf);color:var(--txt2);border:0.5px solid var(--blt2)')+'">'+e(initials)+'</div>';
+    h+='<div class="drv-info"><div class="drv-name">'+e(d.name)+(isGeorge?' <span style="font-size:10px;background:var(--red);color:#fff;padding:1px 6px;border-radius:99px;font-weight:700">Owner</span>':'')+'</div>';
+    h+='<div class="drv-phone">'+e(d.phone||'No number set')+'</div></div>';
+    h+='<span style="font-size:18px;color:var(--txt3)">&#8942;</span></div>';
+    h+='<div class="drv-edit-body" id="'+uid+'">';
+    h+='<div class="drv-edit-row"><div style="flex:1"><label class="fl">Name</label><input class="fi" type="text" value="'+e(d.name)+'" id="'+uid+'-name" placeholder="Driver name"></div></div>';
+    h+='<div class="drv-edit-row"><div style="flex:1"><label class="fl">Phone</label><input class="fi" type="tel" value="'+e(d.phone||'')+'" id="'+uid+'-phone" placeholder="+44..."></div></div>';
+    h+='<div style="display:flex;gap:8px;align-items:center;margin-top:4px">';
+    h+='<button class="drv-save-btn" data-idx="'+idx+'" onclick="saveDrv(this)">Save</button>';
+    if(!isGeorge)h+='<button class="drv-del-btn" data-idx="'+idx+'" onclick="delDrv(this)">Remove driver</button>';
+    h+='</div></div></div>';
+  });
+  h+='<button class="al" style="margin-top:10px" onclick="addDrvPrompt()">+ Add driver</button>';
+  h+='</div>';
+  el.innerHTML=h;
 }
+
+function stToggleDrv(uid){
+  var el=document.getElementById(uid);if(!el)return;
+  el.classList.toggle('open');
+}
+
+function saveDrv(btn){
+  var idx=parseInt(btn.dataset.idx);
+  var uid='drv-'+idx;
+  var name=document.getElementById(uid+'-name').value.trim();
+  var phone=document.getElementById(uid+'-phone').value.trim();
+  if(!name)return;
+  drivers[idx].name=name;drivers[idx].phone=phone;
+  // Save to Supabase
+  supa.from('drivers').update({name:name,phone:phone}).eq('name',drivers[idx].name).then(function(r){
+    if(r.error)console.error('Save driver:',r.error);
+  });
+  buildStDrvs();
+  // Rebuild driver pickers on job page if open
+}
+
+function delDrv(btn){
+  var idx=parseInt(btn.dataset.idx);
+  var d=drivers[idx];
+  if(!confirm('Remove '+d.name+' from drivers?'))return;
+  supa.from('drivers').update({active:false}).eq('name',d.name).then(function(){});
+  drivers.splice(idx,1);
+  buildStDrvs();
+}
+
+function addDrvPrompt(){
+  var name=prompt('Driver name:');if(!name)return;
+  var phone=prompt('Phone number:');
+  var newDrv={id:name.slice(0,2).toUpperCase(),name:name,phone:phone||''};
+  supa.from('drivers').insert({name:name,phone:phone||'',active:true}).then(function(r){
+    if(r.error)console.error('Add driver:',r.error);
+  });
+  drivers.push(newDrv);
+  buildStDrvs();
+}
+
+function buildStFleet(){
+  var el=document.getElementById('st-fleet');if(!el)return;
+  var cats=['VIP','Executive','Standard','Minibus'];
+  // MOT alerts
+  var expired=FLEET.filter(function(v){return expiryStatus(v.mot)==='expired';});
+  var warnSoon=FLEET.filter(function(v){return expiryStatus(v.mot)==='soon';});
+  var h='<div class="st-section-hdr" onclick="stToggle(\"st-fleet-body\")">';
+  var alertCount=expired.length+warnSoon.length;
+  h+='<div><div class="st-section-title">Fleet</div><div class="st-section-meta">'+FLEET.length+' vehicles'+(alertCount?' · <span style="color:#b02020">'+alertCount+' MOT alert'+(alertCount>1?'s':'')+'</span>':'')+'</div></div>';
+  h+='<span class="st-chevron open" id="chv-st-fleet-body">&#9654;</span></div>';
+
+  h+='<div class="st-body open" id="st-fleet-body">';
+
+  // Alert banners
+  if(expired.length){
+    h+='<div class="mot-expired-banner"><h4>&#9888; MOT Expired</h4>';
+    expired.forEach(function(v){h+='<div style="font-size:12px;color:#b02020;font-weight:600">'+e(v.name)+' — '+expiryLabel(v.mot)+'</div>';});
+    h+='</div>';
+  }
+  if(warnSoon.length){
+    h+='<div class="mot-alert-banner"><h4>&#9888; MOT Due Within 30 Days</h4>';
+    warnSoon.forEach(function(v){h+='<div class="mot-alert-row">'+e(v.name)+' — '+expiryLabel(v.mot)+'</div>';});
+    h+='</div>';
+  }
+  cats.forEach(function(cat){
+    var catVehs=FLEET.filter(function(v){return v.type===cat;});
+    if(!catVehs.length)return;
+    h+='<div class="veh-cat"><div class="veh-cat-lbl">'+cat+'</div>';
+    catVehs.forEach(function(v,ci){
+      var ms=expiryStatus(v.mot);
+      var uid='veh-'+v.id;
+      var cardCls='veh-card'+(ms==='soon'?' mot-warn':ms==='expired'?' mot-expired':'');
+      var badgeCls='mot-badge '+(ms==='ok'?'mot-ok':ms==='soon'?'mot-warn':ms==='expired'?'mot-expired':'mot-unset');
+      var badgeTxt=!v.mot?'MOT not set':ms==='ok'?'MOT OK':ms==='soon'?'MOT due soon':'MOT EXPIRED';
+      h+='<div class="'+cardCls+'">';
+      h+='<div class="veh-card-hdr" data-uid="'+uid+'" onclick="stToggleVehEl(this)">';
+      h+='<div><div class="veh-card-name">'+e(v.name)+'</div><div class="veh-card-sub">'+e(v.pax)+' pax'+(v.reg?' · '+e(v.reg):'')+'</div></div>';
+      h+='<span class="'+badgeCls+'">'+badgeTxt+'</span></div>';
+      h+='<div class="veh-edit-body" id="'+uid+'">';
+      h+='<div class="tc2" style="margin-bottom:8px"><div><label class="fl">Name</label><input class="fi" type="text" value="'+e(v.name)+'" id="'+uid+'-name"></div>';
+      h+='<div><label class="fl">Reg plate</label><input class="fi" type="text" value="'+e(v.reg)+'" id="'+uid+'-reg" placeholder="e.g. SN24 ABC" style="text-transform:uppercase"></div></div>';
+      h+='<div class="tc2" style="margin-bottom:8px"><div><label class="fl">Passengers</label><input class="fi" type="number" value="'+e(v.pax)+'" id="'+uid+'-pax" min="1" max="40"></div>';
+      h+='<div><label class="fl">MOT expiry</label><input class="fi" type="date" value="'+e(v.mot)+'" id="'+uid+'-mot"></div></div>';
+      h+='<div style="display:flex;gap:8px;align-items:center"><button class="drv-save-btn" data-vid="'+e(v.id)+'" data-uid="'+uid+'" onclick="saveVeh(this)">Save</button>';
+      h+='<button class="drv-del-btn" data-vid="'+e(v.id)+'" onclick="delVeh(this)">Remove vehicle</button></div>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+  });
+  h+='<button class="al" style="margin-top:10px" onclick="addVehForm()">+ Add vehicle</button>';
+  h+='<div id="add-veh-form" style="display:none;margin-top:10px;background:var(--surf2);border-radius:var(--r);padding:12px;border:0.5px solid var(--blt2)">';
+  h+='<div class="tc2" style="margin-bottom:8px"><div><label class="fl">Vehicle name</label><input class="fi" type="text" id="nv-name" placeholder="e.g. BMW 5 Series"></div>';
+  h+='<div><label class="fl">Class</label><select class="fs" id="nv-type"><option>VIP</option><option>Executive</option><option>Standard</option><option>Minibus</option></select></div></div>';
+  h+='<div class="tc2" style="margin-bottom:8px"><div><label class="fl">Passengers</label><input class="fi" type="number" id="nv-pax" placeholder="4" min="1" max="40"></div>';
+  h+='<div><label class="fl">MOT expiry</label><input class="fi" type="date" id="nv-mot"></div></div>';
+  h+='<div><label class="fl">Reg plate</label><input class="fi" type="text" id="nv-reg" placeholder="e.g. SN24 ABC" style="text-transform:uppercase;margin-bottom:8px"></div>';
+  h+='<button class="drv-save-btn" onclick="saveNewVeh()">Add vehicle</button> <button class="drv-del-btn" onclick="hideAddVehForm()">Cancel</button>';
+  h+='</div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function stToggleVeh(uid){var el=document.getElementById(uid);if(el)el.classList.toggle('open');}
+
+function saveVeh(btn){
+  var vid=btn.dataset.vid;var uid=btn.dataset.uid;
+  var v=FLEET.find(function(x){return x.id===vid;});if(!v)return;
+  v.name=document.getElementById(uid+'-name').value.trim()||v.name;
+  v.reg=document.getElementById(uid+'-reg').value.trim().toUpperCase();
+  v.pax=parseInt(document.getElementById(uid+'-pax').value)||v.pax;
+  v.mot=document.getElementById(uid+'-mot').value;
+  supa.from('vehicles').update({name:v.name,reg:v.reg,pax:v.pax,mot_expiry:v.mot||null}).eq('id',vid).then(function(r){
+    if(r.error)console.error('Save vehicle:',r.error);
+  });
+  buildStFleet();
+}
+
+function delVeh(btn){
+  var vid=btn.dataset.vid;
+  var v=FLEET.find(function(x){return x.id===vid;});if(!v)return;
+  if(!confirm('Remove '+v.name+'?'))return;
+  supa.from('vehicles').update({active:false}).eq('id',vid).then(function(){});
+  FLEET=FLEET.filter(function(x){return x.id!==vid;});
+  buildStFleet();
+}
+
+function addVehForm(){
+  var f=document.getElementById('add-veh-form');
+  if(f)f.style.display=f.style.display==='none'?'block':'none';
+}
+
+async function hideAddVehForm(){var f=document.getElementById("add-veh-form");if(f)f.style.display="none";}
+async function saveNewVeh(){
+  var name=document.getElementById('nv-name').value.trim();
+  var type=document.getElementById('nv-type').value;
+  var pax=parseInt(document.getElementById('nv-pax').value)||4;
+  var mot=document.getElementById('nv-mot').value;
+  var reg=document.getElementById('nv-reg').value.trim().toUpperCase();
+  if(!name){alert('Vehicle name required');return;}
+  var r=await supa.from('vehicles').insert({name:name,type:type,pax:pax,mot_expiry:mot||null,reg:reg||null,active:true}).select().single();
+  if(r.error){console.error('Add vehicle:',r.error);return;}
+  FLEET.push({id:r.data.id,name:name,reg:reg,type:type,pax:pax,mot:mot,ins:'',notes:''});
+  document.getElementById('add-veh-form').style.display='none';
+  buildStFleet();
+}
+
+function buildStPricing(){
+  var el=document.getElementById('st-pricing');if(!el)return;
+  var lastAirport='';
+  var h='<div style="padding-top:4px">';
+  h+='<div style="display:grid;grid-template-columns:90px 40px 1fr 1fr 1fr;gap:4px;margin-bottom:6px">';
+  h+='<div class="ap-lbl" style="text-align:left">Airport</div><div class="ap-lbl">Pax</div><div class="ap-lbl">Std</div><div class="ap-lbl">VIP</div><div class="ap-lbl">Bus</div></div>';
+  AP_PRICES.forEach(function(row,i){
+    h+='<div class="ap-row">';
+    h+='<div class="ap-airport">'+(row.airport!==lastAirport?e(row.airport):'')+'</div>';
+    lastAirport=row.airport;
+    h+='<div class="ap-pax">'+e(row.pax)+'</div>';
+    h+='<input class="ap-field" type="text" value="'+e(row.std)+'" data-idx="'+i+'" data-field="std" onchange="updAP(this)">';
+    h+='<input class="ap-field" type="text" value="'+e(row.vip)+'" data-idx="'+i+'" data-field="vip" onchange="updAP(this)">';
+    h+='<input class="ap-field" type="text" value="'+e(row.bus)+'" data-idx="'+i+'" data-field="bus" onchange="updAP(this)">';
+    h+='</div>';
+  });
+  h+='<div class="ap-notes">+£20 unsociable hours (23:00-06:00) &middot; +£49 drinks &middot; +£49 trailer &middot; +£5 unbooked drop-off</div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function updAP(el){
+  var idx=parseInt(el.dataset.idx);
+  var field=el.dataset.field;
+  if(AP_PRICES[idx])AP_PRICES[idx][field]=el.value;
+}
+
+
 
 /* ── INIT ── */
 
@@ -1447,7 +1688,7 @@ async function init(){
   showLoading();
   await dbLoadAll();
   hideLoading();
-  buildDash();buildPipeline();buildBookings();buildStDrvs();buildStFleet();
+  buildDash();buildPipeline();buildBookings();buildStDrvs();buildStFleet();buildStPricing();
   subscribeRealtime();
 }
 init();
