@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KET Dispatch">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Kennedy Executive Travel</title>
 <link rel="apple-touch-icon" href="./logo.png">
-<link rel="manifest" id="pwa-manifest">
+<link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0c0b0b">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -525,22 +526,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 
-// PWA manifest (generated inline so no separate file needed)
-(function(){
-  var manifest={
-    name:'Kennedy Executive',
-    short_name:'KET Dispatch',
-    description:'Kennedy Executive Travel — dispatch management',
-    start_url:'.',
-    display:'standalone',
-    background_color:'#0c0b0b',
-    theme_color:'#0c0b0b',
-    icons:[{src:'./logo.png',sizes:'512x512',type:'image/png'}]
-  };
-  var blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
-  var url=URL.createObjectURL(blob);
-  document.getElementById('pwa-manifest').setAttribute('href',url);
-})();
+// PWA manifest: see manifest.json in repo root
 
 var SUPA_URL='https://mpdrshyxefrptitbqnbi.supabase.co';
 var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wZHJzaHl4ZWZycHRpdGJxbmJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NzcyNzIsImV4cCI6MjA5ODU1MzI3Mn0.5bkceScowY-26qnG0FkMXaqTZstLQe3GvbO8eooesFs';
