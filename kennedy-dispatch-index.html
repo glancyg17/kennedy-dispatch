@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Kennedy Executive Travel</title>
+<link rel="apple-touch-icon" href="./logo.png">
+<link rel="manifest" id="pwa-manifest">
+<meta name="theme-color" content="#0c0b0b">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#9e1c1c;--red2:#c42222;--gold:#c8a45a;--goldk:#8a6020;
+  --blk:#0c0b0b;--blk2:#131111;--cream:#f0ebe0;--mid:#a09090;
+  --bg:#eceae6;--surf:#ffffff;--surf2:#e8e5e0;
+  --txt:#111110;--txt2:#3d3c38;--txt3:#6a6860;
+  --blt:rgba(0,0,0,0.12);--blt2:rgba(0,0,0,0.22);
+  --r:8px;
+  --okbg:#d4edbe;--oktxt:#1e5c08;--okbdr:#7aba50;
+  --warnbg:#faeeda;--warntxt:#7a4800;
+  --infobg:#d0e4fa;--infotxt:#1060b0;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#0f0f0d;--surf:#1e1e1c;--surf2:#2a2a27;
+    --txt:#f0efe8;--txt2:#c8c7be;--txt3:#8a8a80;
+    --blt:rgba(255,255,255,0.1);--blt2:rgba(255,255,255,0.18);
+    --okbg:#0a2800;--oktxt:#7aba50;--okbdr:#2a6010;
+    --goldk:#c8a45a;--warnbg:#2a1800;--warntxt:#d4a84a;
+    --infobg:#0a2040;--infotxt:#7ab0f0;
+  }
+}
+html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--txt)}
+.app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--surf)}
+
+/* ── TOP CHROME - always visible ── */
+.chrome{background:var(--blk);flex-shrink:0;padding-top:env(safe-area-inset-top)}
+.topbar{padding:13px 16px 0;display:flex;align-items:center;gap:10px;min-height:46px}
+.tb-title{font-size:15px;font-weight:700;color:var(--cream);flex:1}
+.tb-sub{font-size:11px;color:#b0a090;margin-top:1px}
+.tb-back{background:transparent;border:none;color:var(--cream);cursor:pointer;font-size:15px;padding:0;font-family:inherit;font-weight:500;white-space:nowrap}
+.tb-add{background:var(--red);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.top-nav{display:flex;border-bottom:0.5px solid #1e1414;margin-top:2px}
+.nb{flex:1;padding:9px 2px 8px;border:none;background:transparent;color:#8a8080;font-size:10px;font-family:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;border-bottom:2px solid transparent;margin-bottom:-0.5px;font-weight:600}
+.nb.on{color:var(--cream);border-bottom-color:var(--red)}
+.nb-ico{font-size:17px;line-height:1}
+
+/* ── SCREENS ── */
+.screens{flex:1;overflow:hidden;position:relative}
+.scr{display:none;flex-direction:column;overflow-y:auto;height:100%;-webkit-overflow-scrolling:touch}
+.scr.on{display:flex}
+
+/* ── SHARED ── */
+.sec{padding:11px 16px;border-bottom:0.5px solid var(--blt)}
+.sec h3{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:9px}
+.dr{display:flex;justify-content:space-between;align-items:flex-start;padding:4px 0;gap:10px}
+.dl{font-size:13px;color:var(--txt2);flex-shrink:0;font-weight:500}
+.dv{font-size:13px;font-weight:600;color:var(--txt);text-align:right}
+.dvg{color:var(--goldk)}.dvb{color:#1060b0}
+@media(prefers-color-scheme:dark){.dvb{color:#5090e0}}
+.nb2{margin-top:8px;padding:9px 11px;background:var(--surf2);border-radius:var(--r);font-size:12px;color:var(--txt2);line-height:1.65;font-weight:500}
+.divider{height:1px;background:var(--blt)}
+.sec-head{font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.08em}
+.slbl{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.09em;padding:12px 16px 6px;display:flex;align-items:center;justify-content:space-between}
+.slbl-ct{font-size:10px;font-weight:500;color:var(--txt3)}
+
+/* ── STATUS BADGE ── */
+.sbdg{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;display:inline-block}
+.s-new{background:var(--infobg);color:var(--infotxt)}
+.s-quoted{background:var(--warnbg);color:var(--warntxt)}
+.s-confirmed{background:var(--okbg);color:var(--oktxt)}
+.s-done{background:var(--surf2);color:var(--txt3)}
+
+/* ── DASHBOARD ── */
+.ts{background:var(--blk);padding:12px 16px 0}
+.ts h2{color:var(--gold);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.sw{overflow-y:auto;max-height:240px}
+.uw{overflow-y:auto;max-height:250px}
+.tc{background:var(--blk2);border:0.5px solid #2a2222;border-radius:var(--r);padding:10px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-bottom:5px}
+.tc:active{border-color:var(--red)}
+.tt{font-size:13px;font-weight:700;color:#fff}
+.tr{font-size:12px;color:#d4a84a;font-weight:600;margin-top:2px}
+.tn{font-size:11px;color:#b0a090;margin-top:1px}
+.vp{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:#1e1414;border:0.5px solid #3a2222;color:#d4a84a;white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;text-align:right;display:block}
+.tdrv{font-size:11px;color:#b0a090;margin-top:3px;text-align:right;font-weight:500}
+.te{font-size:13px;color:#8a8080;padding:6px 0 14px;font-style:italic}
+
+/* ── JOB ROWS ── */
+.jr{padding:10px 16px;border-bottom:0.5px solid var(--blt);display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:10px}
+.jr:active{background:var(--surf2)}
+.jn{font-size:14px;font-weight:700;color:var(--txt)}
+.jro{font-size:12px;font-weight:600;color:var(--red);margin-top:2px}
+.jm{font-size:11px;color:var(--txt3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.vt{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--surf2);border:0.5px solid var(--blt2);color:var(--txt2);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis;display:block;text-align:right;flex-shrink:0}
+.jdrv{font-size:11px;color:var(--txt3);margin-top:3px;text-align:right;font-weight:500}
+
+/* ── FILTERS ── */
+.fr{display:flex;gap:5px;padding:8px 16px;overflow-x:auto;flex-shrink:0;border-bottom:0.5px solid var(--blt)}
+.fr::-webkit-scrollbar{display:none}
+.chip{background:var(--surf2);border:0.5px solid var(--blt2);border-radius:99px;padding:5px 13px;font-size:12px;cursor:pointer;white-space:nowrap;color:var(--txt2);font-family:inherit;flex-shrink:0;font-weight:600}
+.chip.on{background:var(--red);border-color:var(--red);color:#fff}
+
+/* ── JOB DETAIL ── */
+.jdh{background:var(--blk);padding:13px 16px}
+.jdhn{font-size:17px;font-weight:700;color:#fff;margin-bottom:1px}
+.jdhr{font-size:13px;color:#d4a84a;font-weight:600;margin-bottom:2px}
+.jdhs{font-size:11px;color:#b0a090;margin-top:1px}
+.jdhv{display:inline-block;margin-top:7px;font-size:10px;font-weight:600;padding:2px 10px;border-radius:99px;background:#1e1414;border:0.5px solid #3a2222;color:#d4a84a}
+
+/* ── ACTION BUTTONS ── */
+.act-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:11px 16px;border-bottom:0.5px solid var(--blt)}
+.act-row.single{grid-template-columns:1fr}
+.ab{background:var(--surf2);border:0.5px solid var(--blt2);border-radius:var(--r);padding:11px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--txt2);font-family:inherit;font-weight:600}
+.ab:active{background:var(--bg)}
+.ab.red{background:var(--red);border-color:var(--red);color:#fff}
+.ab.green{background:var(--okbg);border-color:var(--okbdr);color:var(--oktxt)}
+.ab.amber{background:var(--warnbg);border-color:#d4a84a;color:var(--warntxt)}
+.ab-ico{font-size:19px;line-height:1}
+.big-btn{width:100%;border:none;border-radius:var(--r);padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:7px}
+.big-btn.red{background:var(--red);color:#fff}
+.big-btn.green{background:var(--okbg);color:var(--oktxt)}
+.big-btn.amber{background:var(--warnbg);color:var(--warntxt)}
+
+/* ── DRIVER PICKER ── */
+.dopt{border:0.5px solid var(--blt2);border-radius:var(--r);overflow:hidden;cursor:pointer;background:var(--surf);margin-bottom:6px}
+.dopt.ason{border-color:var(--okbdr)}
+.dopt.sel{border-color:var(--red)}
+.dhdr{display:flex;align-items:center;gap:9px;padding:9px 12px}
+.dav{width:30px;height:30px;border-radius:50%;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--txt2);flex-shrink:0}
+.dopt.ason .dav{background:var(--okbg);color:var(--oktxt)}
+.dopt.sel .dav{background:var(--red);color:#fff}
+.dnam{font-size:13px;font-weight:600;color:var(--txt)}
+.dsub{font-size:11px;color:var(--txt3)}
+.dbdg{font-size:10px;padding:2px 8px;border-radius:99px;margin-left:auto;white-space:nowrap;flex-shrink:0;font-weight:600}
+.dba{background:var(--okbg);color:var(--oktxt)}
+.dbs{background:#1e1414;border:0.5px solid #3a2222;color:#d4a84a}
+.dbv{background:var(--surf2);border:0.5px solid var(--blt2);color:var(--txt3)}
+.dck{margin-left:6px;font-size:15px;color:var(--red);display:none;flex-shrink:0}
+.dopt.sel .dck{display:block}
+
+/* reassign bar */
+.rbar{margin-top:8px;border-radius:var(--r);border:0.5px solid var(--red);overflow:hidden;display:none}
+.rbar.on{display:block}
+.rinf{padding:9px 13px;background:var(--blk);display:flex;align-items:center;gap:8px;font-size:12px;color:#c0b0a0;font-weight:500}
+.rinn{color:#d4a84a;font-weight:700}
+.ract{display:grid;grid-template-columns:1fr 1fr}
+.rcan{background:var(--surf2);border:none;border-top:0.5px solid var(--blt);padding:11px;font-size:13px;color:var(--txt2);cursor:pointer;font-family:inherit;font-weight:600}
+.rcnf{background:var(--red);border:none;border-top:0.5px solid var(--red);padding:11px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit}
+.rtst{display:none;align-items:center;gap:8px;padding:9px 13px;background:var(--okbg);border-radius:var(--r);margin-top:8px;border:0.5px solid var(--okbdr)}
+.rtst.on{display:flex}
+.rtst span{font-size:13px;color:var(--oktxt);font-weight:600}
+
+/* ── JOB SHEET ── */
+.plbl{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px;margin-top:14px}
+.prev{background:var(--blk);border-radius:var(--r);padding:11px 13px;font-family:"Courier New",monospace;font-size:11px;line-height:1.75;color:#d4a84a;white-space:pre-wrap;word-break:break-word;margin-bottom:10px}
+.sndrow{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.swa{background:#1d9e75;color:#fff;border:none;border-radius:var(--r);padding:10px 8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px;font-weight:700;font-family:inherit}
+.scp{background:var(--surf2);border:0.5px solid var(--blt2);border-radius:var(--r);padding:10px 8px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px;color:var(--txt);font-family:inherit;font-weight:600}
+.ctst{font-size:12px;color:var(--oktxt);text-align:center;margin-top:5px;min-height:14px;font-weight:600}
+
+/* ── FORM ── */
+.fb{padding:14px 16px;display:flex;flex-direction:column;gap:12px;padding-bottom:40px}
+.fl{font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block}
+.fi,.fs,.ft{font-family:inherit;font-size:14px;width:100%;background:var(--surf2);border:1px solid var(--blt2);border-radius:var(--r);padding:9px 12px;color:var(--txt);-webkit-appearance:none;appearance:none;font-weight:500}
+.fi:focus,.fs:focus,.ft:focus{outline:none;border-color:var(--red)}
+.ft{resize:vertical;min-height:60px}
+.tc2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stpr{display:flex;gap:7px;align-items:center;margin-bottom:5px}
+.stpr input{flex:1;font-family:inherit;font-size:14px;background:var(--surf2);border:1px solid var(--blt2);border-radius:var(--r);padding:9px 12px;color:var(--txt)}
+.rms{background:transparent;border:1px solid var(--blt2);border-radius:var(--r);width:36px;height:36px;cursor:pointer;color:var(--txt3);font-family:inherit;font-size:16px}
+.asp{background:transparent;border:1px dashed var(--blt2);border-radius:var(--r);padding:8px 12px;font-size:13px;color:var(--txt3);cursor:pointer;font-family:inherit;width:100%;margin-top:3px;font-weight:500}
+.tgr{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surf2);border-radius:var(--r);cursor:pointer;border:1px solid var(--blt)}
+.tg{width:38px;height:22px;border-radius:99px;background:var(--blt2);position:relative;flex-shrink:0;transition:background .2s}
+.tg.on{background:var(--red)}
+.tgk{width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left .15s}
+.tg.on .tgk{left:19px}
+.rts{display:none;flex-direction:column;gap:12px}
+.rts.on{display:flex}
+.fls{display:none}
+.fls.on{display:block}
+.ferr{font-size:12px;color:#b02020;margin-top:4px;font-weight:600}
+.savebtn{background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;width:100%}
+.qa-hint{font-size:12px;color:var(--txt3);font-weight:500;line-height:1.5;padding:2px 0 2px}
+
+/* ── CALENDAR ── */
+.cal-wrap{padding:10px 12px 16px}
+.cal-viewtog{display:flex;gap:6px;padding:0 4px 10px}
+.cvt-btn{flex:1;background:var(--surf2);border:1px solid var(--blt2);border-radius:var(--r);padding:7px 4px;font-size:12px;font-weight:700;color:var(--txt2);cursor:pointer;font-family:inherit}
+.cvt-btn.on{background:var(--red);border-color:var(--red);color:#fff}
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 4px}
+.cal-month{font-size:15px;font-weight:700;color:var(--txt)}
+.cal-nav{background:transparent;border:1px solid var(--blt2);border-radius:var(--r);width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--txt2);display:flex;align-items:center;justify-content:center;font-family:inherit}
+.cal-today-btn{font-size:11px;font-weight:700;color:var(--red);background:none;border:none;cursor:pointer;font-family:inherit}
+
+/* Month grid — dense, shows job text */
+.cal-dhdr{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:2px}
+.cal-dl{text-align:center;font-size:9px;font-weight:700;color:var(--txt3);padding:3px 0;text-transform:uppercase}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--blt)}
+.cal-cell{background:var(--surf);min-height:78px;padding:3px 2px;cursor:pointer;display:flex;flex-direction:column;overflow:hidden}
+.cal-cell.other{background:var(--bg)}
+.cal-cell.today{box-shadow:inset 0 0 0 1.5px var(--red)}
+.cal-cn{font-size:10px;font-weight:700;color:var(--txt);padding:1px 2px;flex-shrink:0}
+.cal-cell.other .cal-cn{color:var(--txt3)}
+.cal-cell.today .cal-cn{color:var(--red)}
+.cal-cell.weekend .cal-cn{color:var(--txt3)}
+.cal-pills{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1}
+.cal-pill{font-size:8.5px;line-height:1.25;font-weight:700;padding:1px 3px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+.cal-pill-more{font-size:8.5px;font-weight:700;color:var(--txt3);padding:1px 3px}
+
+/* Day detail below grid */
+.cal-djobs{margin-top:12px;padding:0 4px}
+.cal-djobs h4{font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.cj{background:var(--surf2);border-radius:var(--r);padding:0;margin-bottom:8px;cursor:pointer;overflow:hidden;border:0.5px solid var(--blt2)}
+.cj-bar{height:4px;width:100%}
+.cj-body{padding:8px 11px}
+.cj-r1{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.cj-time{font-size:12px;font-weight:700;color:var(--txt)}
+.cj-drv{font-size:10px;font-weight:600;color:var(--txt3);background:var(--surf);border-radius:4px;padding:1px 7px;border:0.5px solid var(--blt2)}
+.cj-route{font-size:14px;font-weight:800;color:var(--txt);margin:2px 0}
+.cj-name{font-size:11px;color:var(--txt2);font-weight:500}
+.cj-veh{font-size:10px;font-weight:600;color:var(--txt3);margin-top:3px}
+.cal-nojobs{font-size:13px;color:var(--txt3);font-style:italic}
+
+/* Week view */
+.wk-day{border-bottom:0.5px solid var(--blt)}
+.wk-day-hdr{display:flex;align-items:baseline;gap:8px;padding:10px 12px 6px;background:var(--surf2)}
+.wk-day-name{font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em}
+.wk-day-num{font-size:16px;font-weight:800;color:var(--txt)}
+.wk-day-hdr.today .wk-day-num{color:var(--red)}
+.wk-day-ct{font-size:11px;color:var(--txt3);font-weight:500;margin-left:auto}
+.wk-jobs{padding:6px 12px 10px}
+
+/* List view */
+.lst-group{padding:10px 16px 4px}
+.lst-group-hdr{font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;padding-bottom:6px;border-bottom:0.5px solid var(--blt);margin-bottom:8px}
+.lst-empty{padding:40px 20px;text-align:center;color:var(--txt3);font-size:13px;font-style:italic}
+
+/* ── SETTINGS ── */
+.stsec{padding:11px 16px;border-bottom:0.5px solid var(--blt)}
+.stsec h3{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:9px}
+.str{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--blt)}
+.str:last-child{border-bottom:none}
+.stn{font-size:14px;color:var(--txt);font-weight:600}
+.sts{font-size:11px;color:var(--txt3);margin-top:1px;font-weight:500}
+.pon{background:var(--okbg);color:var(--oktxt);font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700}
+.al{font-size:13px;color:var(--red);cursor:pointer;display:flex;align-items:center;gap:4px;margin-top:8px;background:none;border:none;padding:0;font-family:inherit;font-weight:600}
+.ci{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:var(--r);border:0.5px solid var(--blt);background:var(--surf);margin-bottom:6px}
+.cd{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.cin{font-size:13px;font-weight:600;color:var(--txt);flex:1}
+.cop{margin-left:auto;background:transparent;border:0.5px solid var(--blt2);border-radius:var(--r);padding:4px 10px;font-size:11px;color:var(--txt2);cursor:pointer;font-family:inherit;font-weight:600}
+.ptbl{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.ptbl th{text-align:left;font-size:10px;color:var(--txt3);text-transform:uppercase;padding:5px 6px;border-bottom:0.5px solid var(--blt);font-weight:700}
+.ptbl td{padding:7px 6px;border-bottom:0.5px solid var(--blt);color:var(--txt);font-weight:500}
+.ptbl tr:last-child td{border-bottom:none}
+.pg{color:var(--goldk);font-weight:700}
+
+
+
+
+/* ── PRICE & QUOTE ── */
+.price-row{display:flex;gap:7px;align-items:flex-end}
+.price-row .fi{flex:1}
+.send-quote-btn{background:#1d9e75;color:#fff;border:none;border-radius:var(--r);padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.send-quote-btn:disabled{background:var(--surf2);color:var(--txt3);cursor:not-allowed}
+.send-quote-btn:active:not(:disabled){background:#0f6e56}
+.quote-sent-note{font-size:11px;color:var(--txt3);margin-top:6px;font-weight:500}
+.fallback-row{margin-top:10px}
+.fallback-link{font-size:12px;color:var(--txt3);text-decoration:underline;cursor:pointer;background:none;border:none;font-family:inherit;font-weight:500;padding:0}
+/* ── AVAILABILITY WARNING ── */
+.avail-warn{display:none;background:var(--warnbg);border:1px solid #d4a84a;border-radius:var(--r);padding:10px 12px;margin-top:8px}
+.avail-warn.vis{display:block}
+.avail-warn-hdr{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--warntxt);margin-bottom:6px}
+.avail-warn-job{font-size:12px;color:var(--warntxt);padding:3px 0;font-weight:500}
+.avail-ack{display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer}
+.avail-ack input{width:16px;height:16px;accent-color:var(--red);flex-shrink:0}
+.avail-ack-lbl{font-size:12px;color:var(--warntxt);font-weight:600}
+
+/* ── EXPIRY STATUS ── */
+.exp-ok{color:var(--oktxt);font-size:11px;font-weight:600}
+.exp-upcoming{color:#7a4800;font-size:11px;font-weight:600}
+.exp-soon{color:#b02020;font-size:11px;font-weight:700}
+.exp-expired{color:#b02020;font-size:11px;font-weight:700;background:#fcebeb;padding:1px 6px;border-radius:4px}
+.exp-unset{color:var(--txt3);font-size:11px;font-weight:500}
+.fleet-card{padding:11px 0;border-bottom:0.5px solid var(--blt)}
+.fleet-card:last-child{border-bottom:none}
+.fleet-name{font-size:14px;font-weight:700;color:var(--txt)}
+.fleet-reg{font-size:11px;font-weight:600;color:var(--txt3);margin-top:1px;font-family:'Courier New',monospace;letter-spacing:.05em}
+.fleet-exp-row{display:flex;gap:16px;margin-top:5px}
+.fleet-exp-item{display:flex;flex-direction:column;gap:1px}
+.fleet-exp-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3)}
+.fleet-alert-banner{background:#fcebeb;border:1px solid #f5c6c6;border-radius:var(--r);padding:10px 12px;margin-bottom:10px}
+.fleet-alert-banner h4{font-size:11px;font-weight:700;color:#b02020;margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em}
+.fleet-alert-row{font-size:12px;color:#b02020;font-weight:600;padding:2px 0}
+/* ── LINKED JOB ── */
+.linked-job{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surf2);border-radius:var(--r);border:0.5px solid var(--blt2);cursor:pointer;margin-top:6px}
+.linked-job-ico{font-size:16px;flex-shrink:0}
+.linked-job-txt{flex:1}
+.linked-job-lbl{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em}
+.linked-job-name{font-size:13px;font-weight:600;color:var(--txt);margin-top:1px}
+.linked-job-arr{font-size:12px;color:var(--txt3)}
+.return-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;background:#1e1414;border:0.5px solid #3a2222;color:#d4a84a;margin-left:6px;vertical-align:middle}
+/* ── EXTRAS ── */
+.chk-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surf2);border-radius:var(--r);border:1px solid var(--blt2);cursor:pointer}
+.chk-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--red);flex-shrink:0;cursor:pointer}
+.chk-lbl{font-size:13px;font-weight:500;color:var(--txt);flex:1}
+.chk-sub{font-size:11px;color:var(--txt3);margin-top:1px;font-weight:400}
+.stop-row{display:flex;gap:7px;align-items:center;margin-bottom:5px}
+.stop-row input{flex:1;font-family:inherit;font-size:14px;background:var(--surf2);border:1px solid var(--blt2);border-radius:var(--r);padding:9px 12px;color:var(--txt)}
+.rm-stop{background:transparent;border:1px solid var(--blt2);border-radius:var(--r);width:36px;height:36px;cursor:pointer;color:var(--txt3);font-family:inherit;font-size:18px;flex-shrink:0}
+.add-stop{background:transparent;border:1px dashed var(--blt2);border-radius:var(--r);padding:8px 12px;font-size:13px;color:var(--txt3);cursor:pointer;font-family:inherit;width:100%;margin-top:3px;font-weight:500;text-align:left}
+.cond-sec{display:none}
+.cond-sec.vis{display:flex;flex-direction:column;gap:12px}
+.pn{font-size:11px;color:var(--txt3);line-height:1.6;margin-top:8px;font-weight:500}
+</style>
+</head>
+<body>
+<div class="app">
+<div id="loading-overlay" style="display:flex;position:fixed;inset:0;background:#0c0b0b;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:20px;font-family:-apple-system,sans-serif"><img src="./logo.png" alt="Kennedy Executive Travel" style="width:220px;max-width:80vw;opacity:0.95"><div style="font-size:13px;color:#7a6f6f;font-weight:500;letter-spacing:0.05em">Loading...</div></div>
+
+<!-- ALWAYS-VISIBLE TOP CHROME -->
+<div class="chrome">
+  <div class="topbar" id="tb">
+    <div style="flex:1">
+      <div class="tb-title" id="tb-title">Kennedy Executive</div>
+      <div class="tb-sub" id="tb-sub"></div>
+    </div>
+    <button class="tb-add" id="tb-add" onclick="nav('add')" aria-label="Add job">+</button>
+    <button class="tb-back" id="tb-back" style="display:none" onclick="goBack()">&#8249; Back</button>
+  </div>
+  <nav class="top-nav">
+    <button class="nb on" id="nb-d" onclick="nav('d')"><span class="nb-ico">&#9632;</span>Dashboard</button>
+    <button class="nb" id="nb-p" onclick="nav('p')"><span class="nb-ico">&#128260;</span>Pipeline</button>
+    <button class="nb" id="nb-b" onclick="nav('b')"><span class="nb-ico">&#9776;</span>Bookings</button>
+    <button class="nb" id="nb-c" onclick="nav('c')"><span class="nb-ico">&#128197;</span>Calendar</button>
+    <button class="nb" id="nb-s" onclick="nav('s')"><span class="nb-ico">&#9881;</span>Settings</button>
+  </nav>
+</div>
+
+<div class="screens">
+
+<!-- DASHBOARD -->
+<div id="s-d" class="scr on">
+  <div class="ts"><h2>Today</h2><div class="sw" id="tlist"></div></div>
+  <div class="slbl">Upcoming <span class="slbl-ct" id="uct"></span></div>
+  <div class="uw" id="ulist"></div>
+</div>
+
+<!-- PIPELINE -->
+<div id="s-p" class="scr">
+  <div class="fr">
+    <button class="chip on" onclick="filterP(this,'all')">All</button>
+    <button class="chip" onclick="filterP(this,'new')">New</button>
+    <button class="chip" onclick="filterP(this,'quoted')">Quoted</button>
+  </div>
+  <div id="plist"></div>
+</div>
+
+<!-- BOOKINGS -->
+<div id="s-b" class="scr">
+  <div class="fr">
+    <button class="chip on" onclick="filterB(this,'all')">All</button>
+    <button class="chip" onclick="filterB(this,'today')">Today</button>
+    <button class="chip" onclick="filterB(this,'upcoming')">Upcoming</button>
+  </div>
+  <div id="blist"></div>
+  <div class="slbl" style="margin-top:4px;border-top:0.5px solid var(--blt)">Past <span class="slbl-ct" id="pastct"></span></div>
+  <div id="pastlist"></div>
+</div>
+
+<!-- JOB DETAIL (shared for all statuses) -->
+<div id="s-j" class="scr"><div id="jcont"></div></div>
+
+<!-- ADD JOB -->
+<div id="s-add" class="scr">
+  <div class="fb">
+    <div class="qa-hint">Log quickly — fill in what you know. Edit full details from the job page.</div>
+    <div><label class="fl">Customer name</label><input class="fi" id="fn" type="text" placeholder="Full name"><div class="ferr" id="en" style="display:none">Name required</div></div>
+    <div><label class="fl">Phone number</label><input class="fi" id="fp" type="tel" placeholder="+44..."></div>
+    <div><label class="fl">Channel</label><select class="fs" id="fch"><option>Phone call</option><option>WhatsApp</option><option>Facebook</option><option>Website form</option></select></div>
+    <div><label class="fl">Occasion</label><select class="fs" id="focc"><option value="">Select...</option><option value="airport">Airport transfer</option><option value="wedding">Wedding</option><option value="prom">Prom / Party</option><option value="concert">Concert / Event</option><option value="corporate">Corporate</option><option value="golf">Golf</option><option value="tour">Private tour</option><option value="santa">Santa VIP visit</option><option value="rental">Self-drive rental</option><option value="other">Other</option></select></div>
+    <div class="divider"></div><div class="sec-head">Route (if known)</div>
+    <div><label class="fl">Pickup</label><input class="fi" id="fpu" type="text" placeholder="Town or postcode..."></div>
+    <div><label class="fl">Destination</label><input class="fi" id="fdst" type="text" placeholder="Town or postcode..."></div>
+    <div class="divider"></div><div class="sec-head">Date &amp; time (if known)</div>
+    <div class="tc2">
+      <div><label class="fl">Date</label><input class="fi" id="fdt" type="date"></div>
+      <div><label class="fl">Time</label><input class="fi" id="ftm" type="time"></div>
+    </div>
+    <div><label class="fl">Notes</label><textarea class="ft" id="fnt" placeholder="Anything from the call..."></textarea></div>
+    <button class="savebtn" onclick="saveJob()">Add to pipeline</button>
+  </div>
+</div>
+
+<!-- CALENDAR -->
+<div id="s-c" class="scr">
+  <div class="cal-wrap">
+    <div class="cal-viewtog">
+      <button class="cvt-btn on" id="cvt-month" onclick="setCalView('month')">Month</button>
+      <button class="cvt-btn" id="cvt-week" onclick="setCalView('week')">Week</button>
+      <button class="cvt-btn" id="cvt-list" onclick="setCalView('list')">List</button>
+    </div>
+
+    <!-- MONTH VIEW -->
+    <div id="calv-month">
+      <div class="cal-hdr">
+        <button class="cal-nav" onclick="calPrev()">&#8249;</button>
+        <div class="cal-month" id="cal-month"></div>
+        <button class="cal-nav" onclick="calNext()">&#8250;</button>
+      </div>
+      <div class="cal-dhdr"><div class="cal-dl">Mo</div><div class="cal-dl">Tu</div><div class="cal-dl">We</div><div class="cal-dl">Th</div><div class="cal-dl">Fr</div><div class="cal-dl">Sa</div><div class="cal-dl">Su</div></div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-djobs" id="cal-djobs"></div>
+    </div>
+
+    <!-- WEEK VIEW -->
+    <div id="calv-week" style="display:none">
+      <div class="cal-hdr">
+        <button class="cal-nav" onclick="wkPrev()">&#8249;</button>
+        <div class="cal-month" id="wk-range"></div>
+        <button class="cal-nav" onclick="wkNext()">&#8250;</button>
+      </div>
+      <div id="wk-days"></div>
+    </div>
+
+    <!-- LIST VIEW -->
+    <div id="calv-list" style="display:none">
+      <div id="lst-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="s-s" class="scr">
+  <div class="stsec"><h3>Drivers</h3><div id="std"></div><button class="al">+ Add driver</button></div>
+  <div class="stsec">
+    <h3>Fleet</h3>
+    <div id="stfleet"></div>
+    <button class="al">+ Add vehicle</button>
+  </div>
+  <div class="stsec">
+    <h3>Google calendars</h3>
+    <button onclick="window.open('https://calendar.google.com/calendar/r/week?'+CP)" style="width:100%;background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:11px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px">&#128197; View all vehicles</button>
+    <div style="margin-bottom:10px;font-size:12px;color:var(--txt2);font-weight:500;line-height:1.5">Tap any calendar below to open it in Google Calendar. To get access on your phone, ask to be added as a viewer on each one.</div>
+    <div class="ci"><div class="cd" style="background:#9e1c1c"></div><div class="cin">G-Wagon</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=cef23e708f7600f0b409cf05cdbe2d194adba4d9bf452b672d29071a0168013f%40group.calendar.google.com')">Open</button></div>
+    <div class="ci"><div class="cd" style="background:#c8a45a"></div><div class="cin">Maybach</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=ca80a206893ad6a9207c439f6c5e717b00b9b27e62b8046a0b2d51149f483412%40group.calendar.google.com')">Open</button></div>
+    <div class="ci"><div class="cd" style="background:#378add"></div><div class="cin">Audi SQ7</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=ea22b0534f25b59b65ad06b1f11b1f555f88b3a8618ccca362146e8bb206f1d1%40group.calendar.google.com')">Open</button></div>
+    <div class="ci"><div class="cd" style="background:#1d9e75"></div><div class="cin">V-Class</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=2cf5309de3aeb285dd8ae664a694389a993c7db6b0b0e0c73288b3b1af6a9284%40group.calendar.google.com')">Open</button></div>
+    <div class="ci"><div class="cd" style="background:#534ab7"></div><div class="cin">Minibuses</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=6effdc0135ec1b70dda331e3ebc26dbf3e71e65812ca842f4eabb362c86fc2e0%40group.calendar.google.com')">Open</button></div>
+    <div class="ci"><div class="cd" style="background:#888780"></div><div class="cin">Standard / People carrier</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=3fa1b62815b05a6ab5ff4c5b1dd7bceca4b0051ce819b71b253c04e0e77f5b66%40group.calendar.google.com')">Open</button></div>
+  </div>
+  <div class="stsec">
+    <h3>Airport pricing</h3>
+    <table class="ptbl">
+      <thead><tr><th style="width:30%">Airport</th><th style="width:18%">Pax</th><th style="width:17%">Std</th><th style="width:17%">VIP</th><th style="width:18%">Bus</th></tr></thead>
+      <tbody>
+        <tr><td>Glasgow</td><td>1-4</td><td class="pg">£49</td><td class="pg">£149</td><td>—</td></tr>
+        <tr><td>Glasgow</td><td>5-8</td><td class="pg">£69</td><td class="pg">£199</td><td>—</td></tr>
+        <tr><td>Glasgow</td><td>9+</td><td>—</td><td>—</td><td class="pg">£109+</td></tr>
+        <tr><td>Edinburgh</td><td>1-4</td><td class="pg">£79</td><td class="pg">£199</td><td>—</td></tr>
+        <tr><td>Edinburgh</td><td>5-8</td><td class="pg">£89</td><td class="pg">£199</td><td>—</td></tr>
+        <tr><td>Edinburgh</td><td>9+</td><td>—</td><td>—</td><td class="pg">£129+</td></tr>
+        <tr><td>Manchester</td><td>1-4</td><td class="pg">£299</td><td class="pg">£599</td><td>—</td></tr>
+        <tr><td>Manchester</td><td>5-8</td><td class="pg">£449</td><td class="pg">£699</td><td>—</td></tr>
+        <tr><td>Liverpool</td><td>1-4</td><td class="pg">£299</td><td class="pg">£599</td><td>—</td></tr>
+        <tr><td>Liverpool</td><td>5-8</td><td class="pg">£449</td><td class="pg">£699</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div class="pn">+£20 unsociable hours (23:00-06:00) · +£49 drinks · +£49 trailer · +£5 unbooked drop-off</div>
+  </div>
+</div>
+
+</div><!-- /screens -->
+</div><!-- /app -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+
+// PWA manifest (generated inline so no separate file needed)
+(function(){
+  var manifest={
+    name:'Kennedy Executive',
+    short_name:'KET Dispatch',
+    description:'Kennedy Executive Travel — dispatch management',
+    start_url:'.',
+    display:'standalone',
+    background_color:'#0c0b0b',
+    theme_color:'#0c0b0b',
+    icons:[{src:'./logo.png',sizes:'512x512',type:'image/png'}]
+  };
+  var blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  document.getElementById('pwa-manifest').setAttribute('href',url);
+})();
+
+var SUPA_URL='https://mpdrshyxefrptitbqnbi.supabase.co';
+var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wZHJzaHl4ZWZycHRpdGJxbmJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NzcyNzIsImV4cCI6MjA5ODU1MzI3Mn0.5bkceScowY-26qnG0FkMXaqTZstLQe3GvbO8eooesFs';
+var supa=supabase.createClient(SUPA_URL,SUPA_KEY);
+var CIDS=['cef23e708f7600f0b409cf05cdbe2d194adba4d9bf452b672d29071a0168013f@group.calendar.google.com','ca80a206893ad6a9207c439f6c5e717b00b9b27e62b8046a0b2d51149f483412@group.calendar.google.com','ea22b0534f25b59b65ad06b1f11b1f555f88b3a8618ccca362146e8bb206f1d1@group.calendar.google.com','7afb1b78ac69cacddc3d36f80a7ae0e0d972032e09e5713703e1a8f6bf8ccf7b@group.calendar.google.com','87ac669239d1087538709ae58c70be6fe56489fe3e65ea85c2727290c1877c28@group.calendar.google.com','2cf5309de3aeb285dd8ae664a694389a993c7db6b0b0e0c73288b3b1af6a9284@group.calendar.google.com','6effdc0135ec1b70dda331e3ebc26dbf3e71e65812ca842f4eabb362c86fc2e0@group.calendar.google.com','3fa1b62815b05a6ab5ff4c5b1dd7bceca4b0051ce819b71b253c04e0e77f5b66@group.calendar.google.com'];
+var CP=CIDS.map(function(c){return'cid='+encodeURIComponent(c);}).join('&');
+
+var TODAY='2026-06-26';
+var MAINS=['d','p','b','c','s'];
+var SCREENS=['d','p','b','c','s','j','add'];
+var hist=[],cur='d',CUR_JOB=null,PDN='',PDP='',idX=100,retOn=false,stopN=1,calY=2026,calM=5,calSel='2026-06-26';
+
+var VEH_COLORS={'G-Wagon':'#9e1c1c','Maybach':'#c8a45a','Audi SQ7':'#378add','V-Class':'#1d9e75','C-Class':'#534ab7','Cayenne':'#d85a30','Minibus 11':'#534ab7','Minibus 14':'#534ab7','Minibus 16':'#534ab7','2x Minibus 14':'#534ab7','People carrier':'#888780','Standard':'#5a5a56','Standard / saloon':'#5a5a56','White Merc':'#888780','Multiple':'#9e1c1c','Maybach + Merc':'#c8a45a'};
+function vCol(v){if(!v)return'#7a6f6f';for(var k in VEH_COLORS){if(v.indexOf(k)>-1)return VEH_COLORS[k];}return'#7a6f6f';}
+
+var drivers=[];
+
+// Fleet capacity — vehicles with a fixed count. Vehicles not listed here (Standard, People carrier) are treated as ample.
+var FLEET_CAPACITY={
+  'G-Wagon':1,'Maybach':1,'Audi SQ7':1,'V-Class':1,'C-Class':1,'Cayenne':1,
+  'Minibus 11':1,'Minibus 14':2,'Minibus 16':2
+};
+
+// Fleet details with MOT and insurance expiry dates
+// Edit these dates when George provides them
+var FLEET=[];
+
+function daysUntil(ds){
+  if(!ds)return null;
+  var d=new Date(ds+'T12:00:00');var n=new Date(TODAY+'T12:00:00');
+  return Math.round((d-n)/(1000*60*60*24));
+}
+function expiryStatus(ds){
+  if(!ds)return null;
+  var d=daysUntil(ds);
+  if(d<0)return'expired';
+  if(d<=30)return'soon';
+  if(d<=90)return'upcoming';
+  return'ok';
+}
+function expiryLabel(ds){
+  if(!ds)return'Not set';
+  var d=daysUntil(ds);
+  if(d<0)return'Expired '+(Math.abs(d))+' days ago';
+  if(d===0)return'Expires today';
+  if(d===1)return'Expires tomorrow';
+  return'Expires in '+d+' days ('+fd(ds)+')';
+}
+
+// ONE job array — status drives where it appears
+var jobs=[];
+
+/* ── UTILS ── */
+function e(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function ab(a){
+  if(!a)return'?';a=a.trim();
+  var ap={'glasgow airport':'GLA','edinburgh airport':'EDH','edinburgh':'EDH','glasgow':'GLA','prestwick':'PIK','manchester airport':'MAN','manchester':'MAN','liverpool airport':'LPL','liverpool':'LPL','newcastle airport':'NCL','heathrow':'LHR','gatwick':'LGW','stansted':'STN'};
+  var l=a.toLowerCase();for(var k in ap){if(l.indexOf(k)>-1)return ap[k];}
+  var m=a.match(/\b([A-Z]{1,2}\d{1,2}[A-Z]?\b)/i);if(m)return m[0].toUpperCase();
+  var w=a.split(/[\s,]+/).filter(Boolean);return w.length>=2?w[0]+' '+w[1]:w[0]||'?';
+}
+function fd(ds){if(!ds)return'';var d=new Date(ds+'T12:00:00');var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return d.getDate()+' '+M[d.getMonth()];}
+function mkSheet(j){
+  var l=['Kennedy Executive Travel','─────────────────────','JOB SHEET',''];
+  l.push((j.date||fd(j.ds)||'TBC')+(j.tm?' · '+j.tm:''));
+  l.push('Vehicle: '+(j.veh||'TBC'));l.push('');
+  l.push('PICKUP');l.push(j.pu||'TBC');
+  (j.stops||[]).forEach(function(s,i){l.push('Stop '+(i+2)+': '+s);});
+  l.push('');l.push('DROP-OFF');l.push(j.do||'TBC');
+  if(j.fl)l.push('Flight: '+j.fl);
+  if(j.rd){l.push('');l.push('RETURN: '+j.rd+(j.rt?' · '+j.rt:''));if(j.rp)l.push('Return pickup: '+j.rp);}
+  l.push('');l.push('CUSTOMER');l.push(j.name);if(j.ph&&j.ph!=='—')l.push(j.ph);
+  if(j.notes){l.push('');l.push('NOTES');l.push(j.notes);}
+  l.push('');l.push('─────────────────────');l.push('Kennedy Executive Travel · 07961 834 904');
+  return l.join('\n');
+}
+
+/* ── NAV ── */
+function setChrome(s){
+  var isMain=MAINS.indexOf(s)>-1;
+  var titles={d:'Kennedy Executive',p:'Pipeline',b:'Bookings',c:'Calendar',s:'Settings',j:'Job detail',add:'New enquiry'};
+  document.getElementById('tb-title').textContent=titles[s]||'Kennedy Executive';
+  document.getElementById('tb-sub').textContent=(s==='d')?(function(){var d=new Date(TODAY);var dy=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];var mn=['January','February','March','April','May','June','July','August','September','October','November','December'];return dy[d.getDay()]+', '+d.getDate()+' '+mn[d.getMonth()]+' 2026';})():'';
+  document.getElementById('tb-add').style.display=(s==='d'||s==='p'||s==='b')?'flex':'none';
+  document.getElementById('tb-back').style.display=(s==='j'||s==='add')?'inline':'none';
+  MAINS.forEach(function(n){var el=document.getElementById('nb-'+n);if(el)el.className='nb'+(n===s?' on':'');});
+}
+
+function nav(s){
+  SCREENS.forEach(function(n){var el=document.getElementById('s-'+n);if(el)el.className='scr'+(n===s?' on':'');});
+  setChrome(s);
+  if(s==='c')setCalView(CAL_VIEW);
+  hist=[];cur=s;
+  var el=document.getElementById('s-'+s);if(el)el.scrollTop=0;
+}
+
+function push(s){
+  hist.push(cur);
+  SCREENS.forEach(function(n){var el=document.getElementById('s-'+n);if(el)el.className='scr'+(n===s?' on':'');});
+  setChrome(s);
+  cur=s;
+  var el=document.getElementById('s-'+s);if(el)el.scrollTop=0;
+}
+
+function goBack(){
+  var p=hist.pop()||'d';
+  SCREENS.forEach(function(n){var el=document.getElementById('s-'+n);if(el)el.className='scr'+(n===p?' on':'');});
+  setChrome(p);
+  cur=p;
+}
+
+/* ── JOB CARDS ── */
+function mkTC(j,cont){
+  var el=document.createElement('div');el.className='tc';
+  el.onclick=function(){openJob(j.id);};
+  el.innerHTML='<div><div class="tt">'+e(j.tm||'TBC')+'</div><div class="tr">'+e(j.from)+' → '+e(j.to)+'</div><div class="tn">'+e(j.name)+'</div></div><div style="text-align:right"><div class="vp">'+e(j.veh||'TBC')+'</div><div class="tdrv">'+e(j.drv||'TBC')+'</div></div>';
+  var cards=cont.querySelectorAll('.tc');var ins=false;
+  for(var i=0;i<cards.length;i++){if((cards[i].querySelector('.tt').textContent||'')>(j.tm||'')){cont.insertBefore(el,cards[i]);ins=true;break;}}
+  if(!ins)cont.appendChild(el);return el;
+}
+
+function mkJR(j,cont){
+  var el=document.createElement('div');el.className='jr';el.dataset.jid=j.id;el.dataset.status=j.status;el.dataset.ds=j.ds;
+  el.onclick=function(){openJob(j.id);};
+  var meta=[];
+  if(j.date)meta.push(j.date);
+  if(j.tm)meta.push(j.tm);
+  if(j.drv&&j.drv!=='TBC')meta.push(j.drv);
+  el.innerHTML='<div style="flex:1;min-width:0"><div class="jn">'+e(j.name)+'</div><div class="jro">'+e(j.from)+' → '+e(j.to)+'</div><div class="jm">'+meta.join(' · ')+'</div></div><div style="text-align:right;flex-shrink:0"><div class="vt">'+e(j.veh||'TBC')+'</div><span class="sbdg s-'+j.status+'" style="display:block;margin-top:4px">'+(j.status==='new'?'New':j.status==='quoted'?'Quoted':j.status==='confirmed'?'Confirmed':'Done')+'</span></div>';
+  cont.appendChild(el);return el;
+}
+
+/* ── DASHBOARD ── */
+function buildDash(){
+  var tl=document.getElementById('tlist');tl.innerHTML='';
+  var ul=document.getElementById('ulist');ul.innerHTML='';
+  var conf=jobs.filter(function(j){return j.status==='confirmed';});
+  var todayJ=conf.filter(function(j){return j.ds===TODAY;}).sort(function(a,b){return(a.tm||'')>(b.tm||'')?1:-1;});
+  var upJ=conf.filter(function(j){return j.ds>TODAY;}).sort(function(a,b){return a.ds>b.ds?1:a.ds<b.ds?-1:(a.tm||'')>(b.tm||'')?1:-1;});
+  if(todayJ.length){todayJ.forEach(function(j){mkTC(j,tl);});}else{tl.innerHTML='<div class="te">No journeys today</div>';}
+  document.getElementById('uct').textContent=upJ.length+' job'+(upJ.length!==1?'s':'');
+  upJ.forEach(function(j){mkJR(j,ul);});
+}
+
+/* ── PIPELINE ── */
+function buildPipeline(){
+  var pl=document.getElementById('plist');pl.innerHTML='';
+  var pj=jobs.filter(function(j){return j.status==='new'||j.status==='quoted';}).sort(function(a,b){return(a.ds||'zzz')>(b.ds||'zzz')?1:-1;});
+  pj.forEach(function(j){mkJR(j,pl);});
+}
+
+function filterP(btn,s){
+  document.querySelectorAll('#s-p .chip').forEach(function(c){c.classList.remove('on');});btn.classList.add('on');
+  document.querySelectorAll('#plist .jr').forEach(function(r){
+    r.style.display=(s==='all'||r.dataset.status===s)?'flex':'none';
+  });
+}
+
+/* ── BOOKINGS ── */
+function buildBookings(){
+  var bl=document.getElementById('blist');bl.innerHTML='';
+  var pl=document.getElementById('pastlist');if(pl)pl.innerHTML='';
+  var conf=jobs.filter(function(j){return j.status==='confirmed';}).sort(function(a,b){return a.ds>b.ds?1:a.ds<b.ds?-1:(a.tm||'')>(b.tm||'')?1:-1;});
+  conf.forEach(function(j){mkJR(j,bl);});
+  var done=jobs.filter(function(j){return j.status==='done';}).sort(function(a,b){return a.ds<b.ds?1:a.ds>b.ds?-1:-1;});
+  done.forEach(function(j){if(pl)mkJR(j,pl);});
+  var ct=document.getElementById('pastct');if(ct)ct.textContent=done.length+' job'+(done.length!==1?'s':'');
+}
+
+function filterB(btn,s){
+  document.querySelectorAll('#s-b .chip').forEach(function(c){c.classList.remove('on');});btn.classList.add('on');
+  document.querySelectorAll('#blist .jr').forEach(function(r){
+    var show=s==='all'||(s==='today'&&r.dataset.ds===TODAY)||(s==='upcoming'&&r.dataset.ds>TODAY);
+    r.style.display=show?'flex':'none';
+  });
+}
+
+/* ── JOB DETAIL ── */
+function openJob(id){
+  CUR_JOB=id;push('j');renderJob();
+}
+
+function renderJob(){
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});
+  if(!j)return;
+  var isConf=j.status==='confirmed'||j.status==='done';
+  var isPipe=j.status==='new'||j.status==='quoted';
+  var sh=mkSheet(j);
+  var waC=j.ph&&j.ph!=='—'?'https://wa.me/'+j.ph.replace(/[\s+()-]/g,''):'';
+  var calT=encodeURIComponent(j.name+(j.from&&j.to?' — '+j.from+' → '+j.to:''));
+  var calD=encodeURIComponent((j.pu?'Pickup: '+j.pu:'')+(j.do?'\nDrop-off: '+j.do:'')+(j.fl?'\nFlight: '+j.fl:'')+(j.notes?'\nNotes: '+j.notes:'')+(j.drv?'\nDriver: '+j.drv:''));
+  var calUrl='https://calendar.google.com/calendar/r/eventedit?text='+calT+'&details='+calD+'&'+CP;
+  var iWA=j.dp?'https://wa.me/'+j.dp.replace(/\+/g,'')+'?text='+encodeURIComponent(sh):'';
+  var stH='';(j.stops||[]).forEach(function(s,i){stH+='<div class="dr"><span class="dl">Stop '+(i+2)+'</span><span class="dv">'+e(s)+'</span></div>';});
+  var occLabels={airport:'Airport transfer',wedding:'Wedding',prom:'Prom / Party',concert:'Concert / Event',corporate:'Corporate',golf:'Golf',tour:'Private tour',santa:'Santa VIP',rental:'Self-drive rental',other:'Other'};
+
+  var h='';
+
+  // Header
+  h+='<div class="jdh"><div class="jdhn">'+e(j.name)+'</div>';
+  if(j.from&&j.to)h+='<div class="jdhr">'+e(j.from)+' → '+e(j.to)+'</div>';
+  h+='<div class="jdhs">'+(j.date||fd(j.ds)||'Date TBC')+(j.tm?' · '+e(j.tm):'')+'</div>';
+  if(j.veh)h+='<div class="jdhv">'+e(j.veh)+'</div>';
+  h+='<div style="margin-top:8px"><span class="sbdg s-'+j.status+'">'+(j.status==='new'?'New':j.status==='quoted'?'Quoted':j.status==='confirmed'?'Confirmed':'Done')+'</span>'+(j.is_return?'<span class="return-badge">↩ Return leg</span>':'')+'</div>';
+  h+='</div>';
+
+  // Pipeline action buttons
+  if(isPipe){
+    h+='<div class="act-row" style="flex-direction:column;gap:7px">';
+    if(j.status==='new')h+='<button class="big-btn amber" data-id="'+e(j.id)+'" onclick="setStatus(this.dataset.id,\'quoted\')">Mark as quoted</button>';
+    var hasReturn=j.return_journey==='yes';
+    var confirmLabel=hasReturn?'✓ Confirm + Create 2 calendar entries':'✓ Confirm + Add to calendar';
+    h+='<button class="big-btn red" data-id="'+e(j.id)+'" onclick="confirmToCalEl(this.dataset.id)">'+confirmLabel+'</button>';
+    h+='</div>';
+  }
+
+  // Edit form — full fields
+  h+='<div class="fb" style="padding-top:4px">';
+
+  // Customer
+  h+='<div class="sec-head">Customer</div>';
+  h+='<div><label class="fl">Name</label><input class="fi" type="text" value="'+e(j.name)+'" onchange="updJ(&quot;name&quot;,this.value)"></div>';
+  h+='<div><label class="fl">Phone</label><input class="fi" type="tel" value="'+e(j.ph==='\u2014'?'':j.ph)+'" placeholder="+44..." onchange="updJ(&quot;ph&quot;,this.value)"></div>';
+  h+='<div><label class="fl">Email</label><input class="fi" type="email" value="'+e(j.email||'')+'" placeholder="email@example.com" onchange="updJ(&quot;email&quot;,this.value)"></div>';
+  h+='<div><label class="fl">Channel</label><select class="fs" onchange="updJ(&quot;ch&quot;,this.value)">';
+  ['Phone call','WhatsApp','Facebook','Website form'].forEach(function(v){h+='<option'+(j.ch===v?' selected':'')+'>'+v+'</option>';});
+  h+='</select></div>';
+
+  // Journey
+  h+='<div class="divider"></div><div class="sec-head">Journey</div>';
+  h+='<div><label class="fl">Journey type</label><select class="fs" id="jd-occ" onchange="updJ(&quot;occ&quot;,this.value);jShowCond()"><option value="">Select...</option>';
+  Object.keys(occLabels).forEach(function(v){h+='<option value="'+v+'"'+(j.occ===v?' selected':'')+'>'+occLabels[v]+'</option>';});
+  h+='</select></div>';
+  h+='<div><label class="fl">Vehicle preference</label><select class="fs" id="jd-veh" onchange="updJ(&quot;veh&quot;,this.value);renderAvailWarn()">';
+  ['','G-Wagon','Maybach','Audi SQ7','V-Class','C-Class','Cayenne','Standard / saloon','People carrier','Minibus 11','Minibus 14','Minibus 16'].forEach(function(v){h+='<option value="'+v+'"'+(j.veh===v?' selected':'')+'>'+(v||'Not sure / any vehicle')+'</option>';});
+  h+='</select></div>';
+  h+='<div class="avail-warn" id="jd-avail-warn"></div>';
+  h+='<div><label class="fl">Passengers</label><select class="fs" onchange="updJ(&quot;pax&quot;,this.value)"><option value="">Select</option>';
+  ['1','2','3','4','5','6','7','8','9-11','12-14','15-16'].forEach(function(v){h+='<option'+(j.pax===v?' selected':'')+'>'+v+'</option>';});
+  h+='</select></div>';
+
+  // Extras
+  h+='<div class="divider"></div><div class="sec-head">Extras</div>';
+  h+='<label class="chk-row" style="margin-bottom:6px"><input type="checkbox"'+(j.car_seat?' checked':'')+' onchange="updJ(&quot;car_seat&quot;,this.checked)"><div><div class="chk-lbl">Child car seat required</div><div class="chk-sub">Note the child age in notes</div></div></label>';
+  h+='<label class="chk-row"><input type="checkbox"'+(j.trailer?' checked':'')+' onchange="updJ(&quot;trailer&quot;,this.checked)"><div><div class="chk-lbl">Trailer required</div><div class="chk-sub">+£49 flat fee</div></div></label>';
+
+  // Date & time
+  h+='<div class="divider"></div><div class="sec-head">Date &amp; time</div>';
+  h+='<div class="tc2"><div><label class="fl">Date</label><input class="fi" type="date" value="'+e(j.ds||'')+'" onchange="updJ(&quot;ds&quot;,this.value);updJ(&quot;date&quot;,this.value?fd(this.value):\'\');"></div>';
+  h+='<div><label class="fl">Pickup time</label><input class="fi" type="time" value="'+e(j.tm||'')+'" onchange="updJ(&quot;tm&quot;,this.value)"></div></div>';
+
+  // Route
+  h+='<div class="divider"></div><div class="sec-head">Route</div>';
+  h+='<div><label class="fl">Pickup address</label><input class="fi" type="text" value="'+e(j.pu||'')+'" placeholder="Street, town, postcode..." onchange="updJRoute(&quot;pu&quot;,this.value)"></div>';
+  h+='<div id="jd-stops">';
+  var jstops=j.stops||[];
+  jstops.forEach(function(s,i){h+='<div class="stop-row"><input type="text" value="'+e(s)+'" placeholder="Additional stop '+(i+1)+'" data-idx="'+i+'" onchange="updStop(this.dataset.idx,this.value)"><button class="rm-stop" data-idx="'+i+'" onclick="rmStop(this.dataset.idx)">×</button></div>';});
+  h+='</div>';
+  h+='<button class="add-stop" onclick="addJStop()">+ Add another stop / via</button>';
+  h+='<div style="margin-top:8px"><label class="fl">Drop-off address</label><input class="fi" type="text" value="'+e(j.do||'')+'" placeholder="Town, postcode or destination..." onchange="updJRoute(&quot;do&quot;,this.value)"></div>';
+
+  // Flight (airport only)
+  h+='<div class="cond-sec" id="jd-flight'+(j.occ==='airport'?' vis':'')+'"><div style="margin-top:12px"><label class="fl">Outbound flight number</label><input class="fi" type="text" value="'+e(j.fl||'')+'" placeholder="e.g. EZY2241" onchange="updJ(&quot;fl&quot;,this.value)"></div></div>';
+
+  // Wedding extra
+  h+='<div class="cond-sec" id="jd-wedding'+(j.occ==='wedding'?' vis':'')+'"><div style="margin-top:12px"><label class="fl">Wedding venue</label><input class="fi" type="text" value="'+e(j.wedding_venue||'')+'" placeholder="Venue name..." onchange="updJ(&quot;wedding_venue&quot;,this.value)"></div>';
+  h+='<div><label class="fl">Number of vehicles needed</label><select class="fs" onchange="updJ(&quot;wedding_vehicles&quot;,this.value)"><option value="">Select</option>';
+  ['1','2','3','4+'].forEach(function(v){h+='<option'+(j.wedding_vehicles===v?' selected':'')+'>'+v+'</option>';});
+  h+='</select></div></div>';
+
+  // Santa extra
+  h+='<div class="cond-sec" id="jd-santa'+(j.occ==='santa'?' vis':'')+'"><div style="margin-top:12px"><label class="fl">Number of children</label><select class="fs" onchange="updJ(&quot;num_children&quot;,this.value)"><option value="">Select</option>';
+  ['1','2','3','4','5'].forEach(function(v){h+='<option'+(j.num_children===v?' selected':'')+'>'+v+'</option>';});
+  h+='</select></div>';
+  h+='<div><label class="fl">Include Grinch chase?</label><select class="fs" onchange="updJ(&quot;grinch&quot;,this.value)"><option value="">Not sure yet</option><option value="yes"'+(j.grinch==='yes'?' selected':'')+'>Yes please!</option><option value="no"'+(j.grinch==='no'?' selected':'')+'>No thank you</option></select></div></div>';
+
+  // Rental extra
+  h+='<div class="cond-sec" id="jd-rental'+(j.occ==='rental'?' vis':'')+'"><div style="margin-top:12px"><label class="fl">Driving licence number</label><input class="fi" type="text" value="'+e(j.licence||'')+'" placeholder="For rental verification" onchange="updJ(&quot;licence&quot;,this.value)"></div></div>';
+
+  // Return journey
+  var hasRet=j.return_journey==='yes';
+  h+='<div class="divider"></div><div class="sec-head">Return journey</div>';
+  h+='<label class="chk-row" style="margin-bottom:'+(hasRet?'12':'0')+'px"><input type="checkbox"'+(hasRet?' checked':'')+' id="jd-ret-chk" onchange="updJ(&quot;return_journey&quot;,this.checked?&quot;yes&quot;:&quot;&quot;);jShowRet()"><div><div class="chk-lbl">Include return journey</div><div class="chk-sub">Return pickup = outgoing drop-off</div></div></label>';
+  h+='<div class="cond-sec" id="jd-retfields'+(hasRet?' vis':'')+'">';
+  h+='<div class="tc2"><div><label class="fl">Return date</label><input class="fi" type="date" value="'+e(j.rd||'')+'" onchange="updJ(&quot;rd&quot;,this.value)"></div>';
+  h+='<div><label class="fl">Return time</label><input class="fi" type="time" value="'+e(j.rt||'')+'" onchange="updJ(&quot;rt&quot;,this.value)"></div></div>';
+  h+='<div><label class="fl">Return drop-off</label><input class="fi" type="text" value="'+e(j.rp||j.pu||'')+'" placeholder="Defaults to outgoing pickup — change if different" onchange="updJ(&quot;rp&quot;,this.value)"></div>';
+  h+='<div class="cond-sec" id="jd-retflight'+(j.occ==='airport'?' vis':'')+'">';
+  h+='<div><label class="fl">Return flight number</label><input class="fi" type="text" value="'+e(j.return_flight||'')+'" placeholder="e.g. EZY2242" onchange="updJ(&quot;return_flight&quot;,this.value)"></div></div>';
+  h+='</div>';
+
+  // Price & quote
+  h+='<div class="divider"></div><div class="sec-head">Price</div>';
+  h+='<div><label class="fl">Quoted price</label>';
+  var priceVal=(j.pr&&j.pr!=='\u2014')?j.pr:'\u00a3';
+  h+='<div class="price-row"><input class="fi" type="text" id="jd-price" value="'+e(priceVal)+'" placeholder="\u00a3149" onfocus="jPriceFocus(this)" onchange="updJ(&quot;pr&quot;,this.value);jToggleSendQuote()">';
+  var canSend=isPipe&&j.ph&&j.ph!=='\u2014'&&j.pr&&j.pr!=='\u2014'&&j.pr!=='\u00a3';
+  h+='<button class="send-quote-btn" id="jd-sendquote" data-id="'+e(j.id)+'"'+(canSend?'':' disabled')+' onclick="sendQuote(this.dataset.id)">Send quote</button></div>';
+  if(!j.ph||j.ph==='\u2014')h+='<div class="quote-sent-note">Add a phone number to send a quote via WhatsApp</div>';
+  if(j.quote_sent)h+='<div class="quote-sent-note">\u2713 Quote sent '+(j.quote_sent_at||'')+'</div>';
+  h+='</div>';
+  if(isPipe&&j.status==='new'){
+    h+='<div class="fallback-row"><button class="fallback-link" data-id="'+e(j.id)+'" onclick="setStatus(this.dataset.id,&quot;quoted&quot;)">Mark as quoted without sending a message</button></div>';
+  }
+  h+='<div class="divider"></div>';
+  h+='<div><label class="fl">Notes / special requests</label><textarea class="ft" onchange="updJ(&quot;notes&quot;,this.value)">'+e(j.notes||'')+'</textarea></div>';
+  h+='</div>';
+
+  // Confirmed-only sections
+  if(isConf){
+    // Linked job display
+    if(j.linked_id){
+      var lj=jobs.find(function(x){return x.id===j.linked_id;});
+      if(lj){
+        h+='<div class="sec"><h3>Linked job</h3>';
+        h+='<div class="linked-job" data-id="'+e(lj.id)+'" onclick="openJobFromEl(this)">';
+        h+='<div class="linked-job-ico">'+(lj.is_return?'↩':'↗')+'</div>';
+        h+='<div class="linked-job-txt"><div class="linked-job-lbl">'+(lj.is_return?'Return leg':'Outbound')+'</div>';
+        h+='<div class="linked-job-name">'+e(lj.from)+' → '+e(lj.to)+'</div>';
+        h+='<div class="linked-job-lbl" style="margin-top:2px;text-transform:none;letter-spacing:0;font-weight:500;color:var(--txt3)">'+(lj.date||fd(lj.ds)||'Date TBC')+(lj.tm?' · '+lj.tm:'')+' · Driver: '+(lj.drv||'TBC')+'</div>';
+        h+='</div><div class="linked-job-arr">›</div></div></div>';
+      }
+    } else if(!j.is_return) {
+      // Offer to add return leg if none exists
+      h+='<div class="sec"><h3>Return leg</h3>';
+      h+='<div style="display:flex;align-items:center;justify-content:space-between">';
+      h+='<div style="font-size:13px;color:var(--txt3);font-weight:500">No return leg added</div>';
+      h+='<button style="background:var(--surf2);border:0.5px solid var(--blt2);border-radius:var(--r);padding:6px 12px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:inherit" data-id="'+e(j.id)+'" onclick="addReturnLeg(this.dataset.id)">+ Add return leg</button>';
+      h+='</div></div>';
+    }
+    // Contact actions
+    h+='<div class="act-row">';
+    h+='<button class="ab"'+(waC?' data-url="'+e(waC)+'" onclick="openUrl(this)"':' style="opacity:.35"')+'>'+' <span class="ab-ico">💬</span>WhatsApp</button>';
+    h+='<button class="ab"'+(waC?' data-url="'+e('tel:'+j.ph)+'" onclick="openUrl(this)"':' style="opacity:.35"')+'>'+' <span class="ab-ico">📞</span>Call</button>';
+    h+='<button class="ab" data-url="'+e(calUrl)+'" onclick="openUrl(this)"><span class="ab-ico">📅</span>Add to calendar</button>';
+    h+='<button class="ab" data-id="'+e(j.id)+'" onclick="setStatus(this.dataset.id,\'done\')"><span class="ab-ico">✓</span>Mark done</button>';
+    h+='</div>';
+
+    // Driver reassign
+    h+='<div class="sec"><h3>Driver</h3>';
+    h+='<div class="curd" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surf2);border-radius:var(--r);margin-bottom:12px;border:0.5px solid var(--blt)">';
+    h+='<div style="width:32px;height:32px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff" id="jd-av">'+e((j.drv||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase())+'</div>';
+    h+='<div><div style="font-size:11px;color:var(--txt3);font-weight:500">Currently assigned</div><div style="font-size:14px;font-weight:600;color:var(--txt);margin-top:1px" id="jd-name">'+e(j.drv||'TBC')+'</div></div></div>';
+    h+=buildDriverPicker(j,sh);
+    // Job sheet
+    h+='<div class="plbl">Job sheet preview</div>';
+    h+='<div class="prev" id="jprev">'+e(sh)+'</div>';
+    h+='<div class="sndrow"><button class="swa" id="jwa" data-url="'+e(iWA)+'" onclick="openUrl(this)">▶ Send via WhatsApp</button>';
+    h+='<button class="scp" onclick="doCopy()">📋 Copy</button></div>';
+    h+='<div class="ctst" id="jctst"></div>';
+    h+='</div>';
+  }
+
+  document.getElementById('jcont').innerHTML=h;
+  renderAvailWarn();
+}
+
+function buildDriverPicker(j,sh){
+  var h='<div id="jdlist">';
+  drivers.forEach(function(dr){
+    var iA=dr.name===(j.drv||'');
+    var waLink=dr.phone?'https://wa.me/'+dr.phone.replace(/\+/g,'')+'?text='+encodeURIComponent(sh):'';
+    h+='<div class="dopt'+(iA?' ason':'')+'" data-name="'+e(dr.name)+'" data-phone="'+e(dr.phone)+'" data-wa="'+e(waLink)+'" onclick="jSelDrv(this)">';
+    h+='<div class="dhdr"><div class="dav">'+e(dr.id)+'</div><div><div class="dnam">'+e(dr.name)+'</div><div class="dsub">'+e(dr.phone)+'</div></div>';
+    h+='<span class="dbdg '+(iA?'dba':'dbv')+'">'+(iA?'Assigned':'Select')+'</span><span class="dck">✓</span></div></div>';
+  });
+  h+='</div>';
+  h+='<div class="rbar" id="jrbar"><div class="rinf">⇄ Reassign to <span class="rinn" id="jrnm">—</span>?</div>';
+  h+='<div class="ract"><button class="rcan" onclick="jCancelReassign()">Cancel</button><button class="rcnf" onclick="jConfirmReassign()">Confirm reassign</button></div></div>';
+  h+='<div class="rtst" id="jrtst"><span>✓ </span><span id="jrtm">Driver updated</span></div>';
+  return h;
+}
+
+function jSelDrv(el){
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j)return;
+  if(el.dataset.name===j.drv){jCancelReassign();return;}
+  document.querySelectorAll('#jdlist .dopt').forEach(function(o){
+    o.classList.remove('sel','ason');var bg=o.querySelector('.dbdg');
+    if(bg){bg.className='dbdg '+(o.dataset.name===j.drv?'dba':'dbv');bg.textContent=o.dataset.name===j.drv?'Assigned':'Select';}
+  });
+  el.classList.add('sel');var bg=el.querySelector('.dbdg');if(bg){bg.className='dbdg dbs';bg.textContent='Selected';}
+  PDN=el.dataset.name;PDP=el.dataset.phone;
+  var nm=document.getElementById('jrnm');if(nm)nm.textContent=PDN;
+  var rb=document.getElementById('jrbar');if(rb)rb.classList.add('on');
+  var rt=document.getElementById('jrtst');if(rt)rt.classList.remove('on');
+}
+
+function jCancelReassign(){
+  PDN='';PDP='';
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j)return;
+  document.querySelectorAll('#jdlist .dopt').forEach(function(o){
+    o.classList.remove('sel','ason');var bg=o.querySelector('.dbdg');var av=o.querySelector('.dav');
+    var iA=o.dataset.name===j.drv;
+    if(bg){bg.className='dbdg '+(iA?'dba':'dbv');bg.textContent=iA?'Assigned':'Select';}
+    if(iA)o.classList.add('ason');
+    if(av){av.style.background='';av.style.color='';}
+  });
+  var rb=document.getElementById('jrbar');if(rb)rb.classList.remove('on');
+}
+
+function jConfirmReassign(){
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j||!PDN)return;
+  j.drv=PDN;j.dp=PDP;
+  document.querySelectorAll('#jdlist .dopt').forEach(function(o){
+    o.classList.remove('sel','ason');var bg=o.querySelector('.dbdg');var av=o.querySelector('.dav');
+    var iA=o.dataset.name===j.drv;
+    if(bg){bg.className='dbdg '+(iA?'dba':'dbv');bg.textContent=iA?'Assigned':'Select';}
+    if(iA){o.classList.add('ason');if(av){av.style.background='var(--okbg)';av.style.color='var(--oktxt)';}}
+    else if(av){av.style.background='';av.style.color='';}
+  });
+  var av=document.getElementById('jd-av');if(av)av.textContent=j.drv.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var nm=document.getElementById('jd-name');if(nm)nm.textContent=j.drv;
+  var rb=document.getElementById('jrbar');if(rb)rb.classList.remove('on');
+  var rt=document.getElementById('jrtst');if(rt)rt.classList.add('on');
+  var rm=document.getElementById('jrtm');if(rm)rm.textContent='Driver updated to '+j.drv;
+  // Update job sheet
+  var sh=mkSheet(j);
+  var pr=document.getElementById('jprev');if(pr)pr.textContent=sh;
+  var wb=document.getElementById('jwa');
+  if(wb&&j.dp)wb.dataset.url='https://wa.me/'+j.dp.replace(/\+/g,'')+'?text='+encodeURIComponent(sh);
+  refreshLists();
+  setTimeout(function(){var t=document.getElementById('jrtst');if(t)t.classList.remove('on');},3000);
+  PDN='';PDP='';
+}
+
+function jShowCond(){
+  var v=document.getElementById('jd-occ');if(!v)return;
+  var occ=v.value;
+  var fl=document.getElementById('jd-flight');if(fl)fl.className='cond-sec'+(occ==='airport'?' vis':'');
+  var wd=document.getElementById('jd-wedding');if(wd)wd.className='cond-sec'+(occ==='wedding'?' vis':'');
+  var sn=document.getElementById('jd-santa');if(sn)sn.className='cond-sec'+(occ==='santa'?' vis':'');
+  var rn=document.getElementById('jd-rental');if(rn)rn.className='cond-sec'+(occ==='rental'?' vis':'');
+  var rf=document.getElementById('jd-retflight');if(rf)rf.className='cond-sec'+(occ==='airport'?' vis':'');
+}
+function jShowRet(){
+  var chk=document.getElementById('jd-ret-chk');if(!chk)return;
+  var rf=document.getElementById('jd-retfields');if(rf)rf.className='cond-sec'+(chk.checked?' vis':'');
+  chk.parentElement.style.marginBottom=chk.checked?'12px':'0px';
+}
+function addJStop(){
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j)return;
+  if(!j.stops)j.stops=[];j.stops.push('');
+  var cont=document.getElementById('jd-stops');if(!cont)return;
+  var idx=j.stops.length-1;
+  var row=document.createElement('div');row.className='stop-row';
+  row.innerHTML='<input type="text" value="" placeholder="Additional stop '+(idx+1)+'" onchange="updStop('+idx+',this.value)"><button class="rm-stop" data-idx="'+idx+'" onclick="rmStop(this.dataset.idx)">×</button>';
+  cont.appendChild(row);
+}
+function updStop(idx,val){
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(j&&j.stops)j.stops[idx]=val;
+}
+function rmStop(idx){
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j||!j.stops)return;
+  j.stops.splice(parseInt(idx),1);renderJob();
+}
+function addReturnLeg(id){
+  var j=jobs.find(function(x){return x.id===id;});if(!j)return;
+  // Show the return journey fields by scrolling to them and pre-setting
+  var retSel=document.getElementById('jd-ret');
+  if(retSel){retSel.value='yes_same';updJ('return_journey','yes_same');jShowRet();}
+  // Scroll to return section
+  var retEl=document.getElementById('jd-retfields');
+  if(retEl){retEl.scrollIntoView({behavior:'smooth',block:'start'});}
+  // Show a hint
+  var hint=document.createElement('div');
+  hint.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--blk);color:var(--cream);padding:10px 16px;border-radius:var(--r);font-size:13px;font-weight:500;z-index:999;border:0.5px solid var(--red)';
+  hint.textContent='Fill in return details then tap Confirm to create the return job';
+  document.body.appendChild(hint);
+  setTimeout(function(){if(hint.parentNode)hint.parentNode.removeChild(hint);},3500);
+}
+
+function checkAvailability(veh,ds,excludeId){
+  if(!veh||!ds||!FLEET_CAPACITY[veh])return[];
+  var cap=FLEET_CAPACITY[veh];
+  var sameDay=jobs.filter(function(x){
+    return x.veh===veh&&x.ds===ds&&(x.status==='confirmed'||x.status==='done')&&x.id!==excludeId;
+  });
+  if(sameDay.length>=cap)return sameDay;
+  return[];
+}
+
+function renderAvailWarn(){
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j)return;
+  var clashes=checkAvailability(j.veh,j.ds,j.id);
+  var el=document.getElementById('jd-avail-warn');if(!el)return;
+  if(!clashes.length){el.className='avail-warn';el.innerHTML='';j.avail_ack=false;return;}
+  var h='<div class="avail-warn-hdr">⚠ '+e(j.veh)+' already booked '+(j.date||fd(j.ds))+'</div>';
+  clashes.forEach(function(c){h+='<div class="avail-warn-job">'+e(c.name)+' · '+e(c.tm||'TBC')+' · '+e(c.from)+' → '+e(c.to)+'</div>';});
+  h+='<label class="avail-ack"><input type="checkbox" id="jd-avail-ack" '+(j.avail_ack?'checked':'')+' onchange="updJ(&quot;avail_ack&quot;,this.checked)"><span class="avail-ack-lbl">I\'ve checked — this works</span></label>';
+  el.innerHTML=h;
+  el.className='avail-warn vis';
+}
+
+function jPriceFocus(el){
+  if(el.value==='\u00a3'){
+    var pos=el.value.length;
+    setTimeout(function(){el.setSelectionRange(pos,pos);},0);
+  }
+}
+function jToggleSendQuote(){
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j)return;
+  var btn=document.getElementById('jd-sendquote');if(!btn)return;
+  var priceEl=document.getElementById('jd-price');
+  var pv=priceEl?priceEl.value.trim():'';
+  var hasPrice=pv&&pv!=='\u00a3';
+  var hasPhone=j.ph&&j.ph!=='\u2014';
+  btn.disabled=!(hasPrice&&hasPhone);
+}
+
+function buildQuoteMsg(j){
+  var l=[];
+  l.push('Hi '+j.name+', thanks for your enquiry with Kennedy Executive Travel.');
+  l.push('');
+  var routeTxt=(j.from&&j.to&&j.from!=='?')?(j.from+' \u2192 '+j.to):(j.occ?j.occ:'your journey');
+  var dateTxt=j.date||fd(j.ds)||'your requested date';
+  l.push('Your quote for '+routeTxt+' on '+dateTxt+' is *'+j.pr+'*.');
+  l.push('');
+  l.push('To confirm your booking, please transfer the amount to:');
+  l.push('Kennedy Executive Travel');
+  l.push('(bank details to follow / on request)');
+  l.push('');
+  l.push('Once payment is received we\'ll confirm your booking and you\'re all set.');
+  l.push('');
+  l.push('Kennedy Executive Travel \u2014 07961 834 904');
+  return l.join('\n');
+}
+
+async function sendQuote(id){
+  var j=jobs.find(function(x){return x.id===id;});if(!j)return;
+  var priceEl=document.getElementById('jd-price');
+  if(priceEl)j.pr=priceEl.value.trim();
+  if(!j.pr||j.pr==='\u00a3'||!j.ph||j.ph==='\u2014')return;
+  var msg=buildQuoteMsg(j);
+  var num=j.ph.replace(/[\s+()-]/g,'');
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg));
+  j.status='quoted';
+  j.quote_sent=true;
+  var now=new Date();
+  j.quote_sent_at=now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
+  refreshLists();
+  renderJob();
+}
+
+function updJ(field,val){
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j)return;
+  j[field]=val;
+  clearTimeout(updJTimer);
+  updJTimer=setTimeout(function(){dbSave(j);},800);
+}
+function updJRoute(field,val){
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j)return;
+  j[field]=val;j.from=ab(j.pu||'');j.to=ab(j.do||'');
+  clearTimeout(updJTimer);
+  updJTimer=setTimeout(function(){dbSave(j);},800);
+}
+function fd(ds){if(!ds)return'';var d=new Date(ds+'T12:00:00');var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return d.getDate()+' '+M[d.getMonth()];}
+
+async function setStatus(id,status){
+  var j=jobs.find(function(x){return x.id===id;});if(!j)return;
+  j.status=status;
+  await dbSave(j);
+  refreshLists();
+  renderJob();
+}
+
+async function confirmToCalEl(id){
+  var j=jobs.find(function(x){return x.id===id;});if(!j)return;
+  var clashes=checkAvailability(j.veh,j.ds,j.id);
+  if(clashes.length&&!j.avail_ack){
+    alert('This vehicle is already booked that day. Please tick "I\'ve checked — this works" before confirming.');
+    return;
+  }
+  j.status='confirmed';
+  await dbSave(j);
+  openCalEntry(j);
+  // If return journey set, create return job and open its calendar entry
+  if(j.return_journey==='yes'){
+    var retId=await createReturnJob(j);
+    var rj=jobs.find(function(x){return x.id===retId;});
+    if(rj){setTimeout(function(){openCalEntry(rj);},800);}
+  }
+  refreshLists();
+  renderJob();
+}
+
+function openCalEntry(j){
+  var calT=encodeURIComponent(j.name+(j.from&&j.to?' — '+j.from+' → '+j.to:'')+(j.is_return?' (↩ Return)':''));
+  var calD=encodeURIComponent((j.pu?'Pickup: '+j.pu:'')+(j.do?'%0ADrop-off: '+j.do:'')+(j.fl?'%0AFlight: '+j.fl:'')+(j.return_flight?'%0AReturn flight: '+j.return_flight:'')+(j.notes?'%0ANotes: '+j.notes:'')+(j.drv&&j.drv!=='TBC'?'%0ADriver: '+j.drv:''));
+  var ds=j.ds||'';var tm=j.tm||'';
+  var dsf=ds?ds.replace(/-/g,''):'';var tmf=tm?(tm.replace(':','')+'00'):'090000';
+  var dates=dsf?('&dates='+dsf+'T'+tmf+'/'+dsf+'T'+tmf):'';
+  window.open('https://calendar.google.com/calendar/r/eventedit?text='+calT+'&details='+calD+dates+'&'+CP);
+}
+
+async function createReturnJob(j){
+  var retId='ret-'+(++idX);
+  // Return pickup = outgoing drop-off (always)
+  // Return drop-off = j.rp if set, otherwise outgoing pickup
+  var retPu=j.do||'';
+  var retDo=j.rp||j.pu||'';
+  var rj={
+    id:retId,
+    name:j.name,
+    ph:j.ph,
+    email:j.email||'',
+    ch:j.ch,
+    occ:j.occ,
+    pu:retPu,
+    do:retDo,
+    ds:j.rd||'',
+    tm:j.rt||'',
+    date:j.rd?fd(j.rd):'',
+    from:ab(retPu),
+    to:ab(retDo),
+    veh:j.veh,
+    drv:'TBC',
+    dp:'',
+    stops:[],
+    fl:j.return_flight||'',
+    rd:'',rt:'',rp:'',
+    return_flight:'',
+    return_journey:'',
+    pr:j.pr,
+    notes:j.notes,
+    car_seat:j.car_seat||false,
+    trailer:j.trailer||false,
+    status:'confirmed',
+    is_return:true,
+    linked_id:j.id,
+    pax:j.pax||''
+  };
+  var saved=await dbSave(rj);if(saved){rj.id=saved.id;retId=saved.id;}
+  j.linked_id=retId;
+  await dbSave(j);
+  jobs.push(rj);
+  return retId;
+}
+
+function refreshLists(){
+  buildDash();buildPipeline();buildBookings();
+}
+
+function openUrl(el){if(el.dataset.url)window.open(el.dataset.url);}
+
+function doCopy(){
+  var pr=document.getElementById('jprev');if(!pr)return;var txt=pr.textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){showCT('Copied');}).catch(function(){fbCopy(txt);});}else{fbCopy(txt);}
+}
+function fbCopy(t){var ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:-999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');showCT('Copied');}catch(ex){showCT('Long-press to copy');}document.body.removeChild(ta);}
+function showCT(m){var t=document.getElementById('jctst');if(t){t.textContent=m;setTimeout(function(){if(t)t.textContent='';},2500);}}
+
+/* ── ADD JOB ── */
+async function saveJob(){
+  var nm=document.getElementById('fn').value.trim();
+  var en=document.getElementById('en');en.style.display=nm?'none':'block';
+  if(!nm)return;
+  var pu=document.getElementById('fpu').value.trim();
+  var dst=document.getElementById('fdst').value.trim();
+  var ds=document.getElementById('fdt').value;
+  var tm=document.getElementById('ftm').value;
+  var j={
+    id:'j-'+(++idX),name:nm,ph:document.getElementById('fp').value.trim()||'—',
+    ch:document.getElementById('fch').value,occ:document.getElementById('focc').value,
+    pu:pu,do:dst,ds:ds,tm:tm,date:ds?fd(ds):'',
+    from:ab(pu||'?'),to:ab(dst||'?'),
+    veh:'',drv:'TBC',dp:'',stops:[],fl:'',rd:'',rt:'',rp:'',pr:'—',
+    notes:document.getElementById('fnt').value.trim(),status:'new'
+  };
+  var saved=await dbSave(j);if(saved)j.id=saved.id;
+  jobs.push(j);
+  ['fn','fp','fpu','fdst','fdt','ftm','fnt'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('focc').value='';
+  document.getElementById('en').style.display='none';
+  buildPipeline();
+  nav('p');
+}
+
+/* ── CALENDAR ── */
+var CAL_VIEW='month';
+var wkStart=null; // Date object for Monday of current week
+
+function vCol(v){if(!v)return'#7a6f6f';var vc={'G-Wagon':'#9e1c1c','Maybach':'#c8a45a','Audi SQ7':'#378add','V-Class':'#1d9e75','C-Class':'#534ab7','Cayenne':'#d85a30','Minibus':'#534ab7','People carrier':'#888780','Standard':'#5a5a56','White Merc':'#888780','Multiple':'#9e1c1c'};for(var k in vc){if(v.indexOf(k)>-1)return vc[k];}return'#7a6f6f';}
+
+function p2ds(y,m,d){return y+'-'+(m+1<10?'0'+(m+1):m+1)+'-'+(d<10?'0'+d:d);}
+
+function setCalView(v){
+  CAL_VIEW=v;
+  ['month','week','list'].forEach(function(n){
+    document.getElementById('cvt-'+n).className='cvt-btn'+(n===v?' on':'');
+    document.getElementById('calv-'+n).style.display=(n===v)?'block':'none';
+  });
+  if(v==='month')renderCal();
+  if(v==='week'){
+    if(!wkStart)wkStart=mondayOf(new Date(TODAY+'T12:00:00'));
+    renderWeek();
+  }
+  if(v==='list')renderList();
+}
+
+/* ── MONTH ── */
+function renderCal(){
+  var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month').textContent=MN[calM]+' '+calY;
+  var grid=document.getElementById('cal-grid');grid.innerHTML='';
+  var first=new Date(calY,calM,1);var startDow=(first.getDay()+6)%7;
+  var dIM=new Date(calY,calM+1,0).getDate();var dIP=new Date(calY,calM,0).getDate();
+  var cells=[];
+  for(var i=0;i<startDow;i++)cells.push({d:dIP-startDow+1+i,m:calM-1,y:calM===0?calY-1:calY,other:true});
+  for(var d=1;d<=dIM;d++)cells.push({d:d,m:calM,y:calY,other:false});
+  var rem=cells.length%7;if(rem>0)for(var j=1;j<=7-rem;j++)cells.push({d:j,m:calM+1,y:calM===11?calY+1:calY,other:true});
+  cells.forEach(function(c,idx){
+    var ds=p2ds(c.y,c.m,c.d);
+    var dayJ=jobs.filter(function(x){return x.ds===ds&&(x.status==='confirmed'||x.status==='done');}).sort(function(a,b){return(a.tm||'')>(b.tm||'')?1:-1;});
+    var isT=ds===TODAY;
+    var isWknd=(idx%7===5||idx%7===6);
+    var el=document.createElement('div');
+    el.className='cal-cell'+(c.other?' other':'')+(isT?' today':'')+(isWknd?' weekend':'');
+    el.dataset.ds=ds;
+    var maxShow=3;
+    var pillsH='';
+    dayJ.slice(0,maxShow).forEach(function(b){
+      var label=(b.tm?b.tm+' ':'')+b.name;
+      pillsH+='<div class="cal-pill" style="background:'+vCol(b.veh)+'">'+e(label)+'</div>';
+    });
+    if(dayJ.length>maxShow)pillsH+='<div class="cal-pill-more">+'+(dayJ.length-maxShow)+' more</div>';
+    el.innerHTML='<span class="cal-cn">'+c.d+'</span><div class="cal-pills">'+pillsH+'</div>';
+    el.onclick=function(){calSel=this.dataset.ds;renderCalDay();highlightCell(this);};
+    grid.appendChild(el);
+  });
+  if(!calSel||calSel<p2ds(calY,calM,1)||calSel>p2ds(calY,calM,dIM))calSel=isCurMonth()?TODAY:p2ds(calY,calM,1);
+  renderCalDay();
+}
+
+function isCurMonth(){var t=new Date(TODAY+'T12:00:00');return t.getFullYear()===calY&&t.getMonth()===calM;}
+
+function highlightCell(el){
+  document.querySelectorAll('#cal-grid .cal-cell').forEach(function(c){c.style.background='';});
+}
+
+function renderCalDay(){
+  var dj=document.getElementById('cal-djobs');
+  var p=calSel.split('-');var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var label=parseInt(p[2])+' '+MN[parseInt(p[1])-1]+' '+p[0];
+  var dayJ=jobs.filter(function(x){return x.ds===calSel&&(x.status==='confirmed'||x.status==='done');}).sort(function(a,b){return(a.tm||'')>(b.tm||'')?1:-1;});
+  var h='<h4>'+label+'</h4>';
+  if(dayJ.length){
+    dayJ.forEach(function(b){h+=buildCJ(b);});
+  } else {h+='<div class="cal-nojobs">No confirmed bookings</div>';}
+  dj.innerHTML=h;
+}
+
+function buildCJ(b){
+  var h='<div class="cj" data-id="'+e(b.id)+'" onclick="openJobFromEl(this)">';
+  h+='<div class="cj-bar" style="background:'+vCol(b.veh)+'"></div>';
+  h+='<div class="cj-body"><div class="cj-r1"><span class="cj-time">'+e(b.tm||'TBC')+'</span><span class="cj-drv">'+e(b.drv||'TBC')+'</span></div>';
+  h+='<div class="cj-route">'+e(b.from)+' &rarr; '+e(b.to)+'</div>';
+  h+='<div class="cj-name">'+e(b.name)+'</div>';
+  h+='<div class="cj-veh">'+e(b.veh||'')+'</div></div></div>';
+  return h;
+}
+
+function openJobFromEl(el){openJob(el.dataset.id);}
+function calPrev(){if(calM===0){calM=11;calY--;}else{calM--;}renderCal();}
+function calNext(){if(calM===11){calM=0;calY++;}else{calM++;}renderCal();}
+
+/* ── WEEK ── */
+function mondayOf(d){var day=(d.getDay()+6)%7;var m=new Date(d);m.setDate(d.getDate()-day);m.setHours(12,0,0,0);return m;}
+function dToDs(d){return d.getFullYear()+'-'+((d.getMonth()+1)<10?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
+
+function renderWeek(){
+  var MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var end=new Date(wkStart);end.setDate(wkStart.getDate()+6);
+  var label=wkStart.getDate()+' '+MN[wkStart.getMonth()]+' \u2013 '+end.getDate()+' '+MN[end.getMonth()];
+  document.getElementById('wk-range').textContent=label;
+  var dayNames=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  var wd=document.getElementById('wk-days');wd.innerHTML='';
+  for(var i=0;i<7;i++){
+    var d=new Date(wkStart);d.setDate(wkStart.getDate()+i);
+    var ds=dToDs(d);
+    var dayJ=jobs.filter(function(x){return x.ds===ds&&(x.status==='confirmed'||x.status==='done');}).sort(function(a,b){return(a.tm||'')>(b.tm||'')?1:-1;});
+    var isT=ds===TODAY;
+    var sec=document.createElement('div');sec.className='wk-day';
+    var h='<div class="wk-day-hdr'+(isT?' today':'')+'"><span class="wk-day-name">'+dayNames[i]+'</span><span class="wk-day-num">'+d.getDate()+'</span><span class="wk-day-ct">'+dayJ.length+' job'+(dayJ.length!==1?'s':'')+'</span></div>';
+    h+='<div class="wk-jobs">';
+    if(dayJ.length){dayJ.forEach(function(b){h+=buildCJ(b);});}
+    else{h+='<div class="cal-nojobs">No bookings</div>';}
+    h+='</div>';
+    sec.innerHTML=h;
+    wd.appendChild(sec);
+  }
+}
+function wkPrev(){wkStart.setDate(wkStart.getDate()-7);renderWeek();}
+function wkNext(){wkStart.setDate(wkStart.getDate()+7);renderWeek();}
+
+/* ── LIST ── */
+function renderList(){
+  var conf=jobs.filter(function(x){return x.status==='confirmed';}).sort(function(a,b){return a.ds>b.ds?1:a.ds<b.ds?-1:(a.tm||'')>(b.tm||'')?1:-1;});
+  var body=document.getElementById('lst-body');
+  if(!conf.length){body.innerHTML='<div class="lst-empty">No confirmed bookings yet</div>';return;}
+  var groups={};var order=[];
+  conf.forEach(function(j){
+    if(!groups[j.ds]){groups[j.ds]=[];order.push(j.ds);}
+    groups[j.ds].push(j);
+  });
+  var h='';
+  var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  order.forEach(function(ds){
+    var p=ds.split('-');
+    var lbl=(ds===TODAY?'Today \u2014 ':'')+parseInt(p[2])+' '+MN[parseInt(p[1])-1]+' '+p[0];
+    h+='<div class="lst-group"><div class="lst-group-hdr">'+lbl+'</div>';
+    groups[ds].forEach(function(b){h+=buildCJ(b);});
+    h+='</div>';
+  });
+  body.innerHTML=h;
+}
+
+/* ── SETTINGS DRIVERS ── */
+function buildStFleet(){
+  var el=document.getElementById('stfleet');if(!el)return;
+  // Alert banner for expired or expiring soon
+  var alerts=FLEET.filter(function(v){
+    var ms=expiryStatus(v.mot);var is=expiryStatus(v.ins);
+    return ms==='expired'||ms==='soon'||is==='expired'||is==='soon';
+  });
+  var h='';
+  if(alerts.length){
+    h+='<div class="fleet-alert-banner"><h4">⚠ Attention required</h4>';
+    alerts.forEach(function(v){
+      var ms=expiryStatus(v.mot);var is=expiryStatus(v.ins);
+      if(ms==='expired'||ms==='soon')h+='<div class="fleet-alert-row">'+e(v.name)+' — MOT: '+expiryLabel(v.mot)+'</div>';
+      if(is==='expired'||is==='soon')h+='<div class="fleet-alert-row">'+e(v.name)+' — Insurance: '+expiryLabel(v.ins)+'</div>';
+    });
+    h+='</div>';
+  }
+  FLEET.forEach(function(v){
+    var ms=expiryStatus(v.mot);var is=expiryStatus(v.ins);
+    h+='<div class="fleet-card">';
+    h+='<div class="fleet-name">'+e(v.name)+'<span style="font-size:11px;font-weight:500;color:var(--txt3);margin-left:8px">'+e(v.type)+' · up to '+v.pax+' pax</span></div>';
+    if(v.reg)h+='<div class="fleet-reg">'+e(v.reg)+'</div>';
+    h+='<div class="fleet-exp-row">';
+    h+='<div class="fleet-exp-item"><div class="fleet-exp-lbl">MOT</div>';
+    if(!v.mot)h+='<div class="exp-unset">Not set — tap to add</div>';
+    else h+='<div class="exp-'+(ms||'ok')+'">'+expiryLabel(v.mot)+'</div>';
+    h+='</div>';
+    h+='<div class="fleet-exp-item"><div class="fleet-exp-lbl">Insurance</div>';
+    if(!v.ins)h+='<div class="exp-unset">Not set — tap to add</div>';
+    else h+='<div class="exp-'+(is||'ok')+'">'+expiryLabel(v.ins)+'</div>';
+    h+='</div>';
+    h+='</div>';
+    if(v.notes)h+='<div style="font-size:11px;color:var(--txt3);margin-top:4px;font-weight:500">'+e(v.notes)+'</div>';
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+
+function buildStDrvs(){
+  var h='';drivers.forEach(function(d){h+='<div class="str"><div><div class="stn">'+e(d.name)+'</div><div class="sts">'+e(d.phone)+'</div></div><span class="pon">Active</span></div>';});
+  var el=document.getElementById('std');if(el)el.innerHTML=h;
+}
+
+/* ── INIT ── */
+
+/* ── SUPABASE DATA LAYER ── */
+function dbToJob(r){
+  return {
+    id:r.id,name:r.name||'',ph:r.phone||'\u2014',email:r.email||'',
+    ch:r.channel||'Phone call',occ:r.occasion||'',veh:r.vehicle||'',pax:r.pax||'',
+    pu:r.pickup||'',do:r.dropoff||'',stops:r.stops||[],
+    ds:r.job_date||'',tm:r.job_time?r.job_time.slice(0,5):'',
+    date:r.job_date?fd(r.job_date):'',
+    car_seat:r.car_seat||false,trailer:r.trailer||false,
+    fl:r.flight||'',return_flight:r.return_flight||'',
+    return_journey:r.return_journey||'',
+    rd:r.return_date||'',rt:r.return_time?r.return_time.slice(0,5):'',
+    rp:r.return_dropoff||'',
+    wedding_venue:r.wedding_venue||'',wedding_vehicles:r.wedding_vehicles||'',
+    num_children:r.num_children||'',grinch:r.grinch||'',licence:r.licence||'',
+    pr:r.price||'\u00a3',status:r.status||'new',
+    quote_sent:r.quote_sent||false,quote_sent_at:r.quote_sent_at||'',
+    avail_ack:r.avail_ack||false,
+    drv:r.driver_name||'TBC',dp:r.driver_phone||'',
+    linked_id:r.linked_job_id||null,is_return:r.is_return||false,
+    notes:r.notes||'',
+    from:r.pickup?ab(r.pickup):'?',to:r.dropoff?ab(r.dropoff):'?'
+  };
+}
+function jobToDb(j){
+  return {
+    name:j.name,phone:(j.ph==='\u2014'||!j.ph)?null:j.ph,
+    email:j.email||null,channel:j.ch||'Phone call',
+    occasion:j.occ||null,vehicle:j.veh||null,pax:j.pax||null,
+    pickup:j.pu||null,dropoff:j.do||null,stops:j.stops||[],
+    job_date:j.ds||null,job_time:j.tm||null,
+    car_seat:!!j.car_seat,trailer:!!j.trailer,
+    flight:j.fl||null,return_flight:j.return_flight||null,
+    return_journey:j.return_journey||'',
+    return_date:j.rd||null,return_time:j.rt||null,return_dropoff:j.rp||null,
+    wedding_venue:j.wedding_venue||null,wedding_vehicles:j.wedding_vehicles||null,
+    num_children:j.num_children||null,grinch:j.grinch||null,licence:j.licence||null,
+    price:j.pr||'\u00a3',status:j.status||'new',
+    quote_sent:!!j.quote_sent,quote_sent_at:j.quote_sent_at||null,
+    avail_ack:!!j.avail_ack,
+    driver_name:j.drv||'TBC',driver_phone:j.dp||null,
+    linked_job_id:j.linked_id||null,is_return:!!j.is_return,notes:j.notes||null
+  };
+}
+async function dbLoadAll(){
+  try{
+    var r=await supa.from('jobs').select('*').order('job_date',{ascending:true}).order('job_time',{ascending:true});
+    if(r.error)throw r.error;
+    jobs=r.data.map(dbToJob);
+  }catch(err){
+    console.error('Load jobs:',err.message||err);
+    jobs=[];
+  }
+  try{
+    var d=await supa.from('drivers').select('*').eq('active',true).order('name');
+    if(!d.error)drivers=d.data.map(function(x){return{id:(x.name||'').slice(0,2).toUpperCase(),name:x.name,phone:x.phone||''};});
+  }catch(err){console.error('Load drivers:',err.message||err);}
+  try{
+    var v=await supa.from('vehicles').select('*').eq('active',true).order('name');
+    if(!v.error)FLEET=v.data.map(function(x){return{id:x.id,name:x.name,reg:x.reg||'',type:x.type||'',pax:x.pax||0,mot:x.mot_expiry||'',ins:x.ins_expiry||'',notes:x.notes||''};});
+  }catch(err){console.error('Load vehicles:',err.message||err);}
+}
+async function dbSave(j){
+  var data=jobToDb(j);
+  var isTemp=!j.id||j.id.startsWith('j-')||j.id.startsWith('ret-');
+  if(isTemp){
+    var r=await supa.from('jobs').insert(data).select().single();
+    if(r.error){console.error('Insert:',r.error);return null;}
+    return r.data;
+  } else {
+    var r=await supa.from('jobs').update(data).eq('id',j.id).select().single();
+    if(r.error){console.error('Update:',r.error);return null;}
+    return r.data;
+  }
+}
+function showLoading(){var e=document.getElementById('loading-overlay');if(e)e.style.display='flex';}
+function hideLoading(){var e=document.getElementById('loading-overlay');if(e)e.style.display='none';}
+function subscribeRealtime(){
+  // Poll every 30 seconds to pick up changes from other devices
+  setInterval(function(){
+    dbLoadAll().then(function(){
+      refreshLists();
+    });
+  },30000);
+}
+var updJTimer=null;
+
+async function init(){
+  setChrome('d');
+  showLoading();
+  await dbLoadAll();
+  hideLoading();
+  buildDash();buildPipeline();buildBookings();buildStDrvs();buildStFleet();
+  subscribeRealtime();
+}
+init();
+</script>
+</body>
+</html>
