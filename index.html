@@ -337,6 +337,17 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .ap-field{width:60px;font-family:inherit;font-size:12px;background:var(--surf2);border:1px solid var(--blt2);border-radius:6px;padding:5px 7px;color:var(--txt);font-weight:600;text-align:center}
 .ap-lbl{font-size:10px;color:var(--txt3);font-weight:600;text-align:center;margin-bottom:3px}
 .ap-notes{font-size:11px;color:var(--txt3);font-weight:500;margin-top:8px;line-height:1.6}
+
+/* ── CANCEL BOOKING ── */
+.cancel-zone{padding:16px;margin-top:8px}
+.cancel-btn{width:100%;background:transparent;border:1px solid var(--blt2);border-radius:var(--r);padding:11px;font-size:13px;font-weight:600;color:var(--txt3);cursor:pointer;font-family:inherit}
+.cancel-confirm{display:none;background:#fcebeb;border:1px solid #f5c6c6;border-radius:var(--r);padding:12px;margin-top:8px}
+.cancel-confirm.vis{display:block}
+.cancel-confirm-msg{font-size:13px;color:#7a0000;font-weight:600;margin-bottom:10px;line-height:1.5}
+.cancel-confirm-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cancel-no{background:var(--surf2);border:0.5px solid var(--blt2);border-radius:var(--r);padding:10px;font-size:13px;font-weight:700;color:var(--txt2);cursor:pointer;font-family:inherit}
+.cancel-yes{background:#b02020;border:none;border-radius:var(--r);padding:10px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit}
+.s-cancelled{background:#f0e0e0;color:#b02020}
 /* __ EXPIRY STATUS __ */
 .exp-ok{color:var(--oktxt);font-size:11px;font-weight:600}
 .exp-upcoming{color:#7a4800;font-size:11px;font-weight:600}
@@ -423,9 +434,10 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
     <button class="chip on" onclick="filterB(this,'all')">All</button>
     <button class="chip" onclick="filterB(this,'today')">Today</button>
     <button class="chip" onclick="filterB(this,'upcoming')">Upcoming</button>
+    <button class="chip" onclick="filterB(this,'cancelled')">Cancelled</button>
   </div>
   <div id="blist"></div>
-  <div class="slbl" style="margin-top:4px;border-top:0.5px solid var(--blt)">Past <span class="slbl-ct" id="pastct"></span></div>
+  <div class="slbl" id="past-label" style="margin-top:4px;border-top:0.5px solid var(--blt)">Past <span class="slbl-ct" id="pastct"></span></div>
   <div id="pastlist"></div>
 </div>
 
@@ -556,8 +568,20 @@ var MAINS=['d','p','b','c','s'];
 var SCREENS=['d','p','b','c','s','j','add'];
 var hist=[],cur='d',CUR_JOB=null,PDN='',PDP='',idX=100,retOn=false,stopN=1,calY=2026,calM=5,calSel='2026-06-26';
 
-var VEH_COLORS={'G-Wagon':'#9e1c1c','Maybach':'#c8a45a','Audi SQ7':'#378add','V-Class':'#1d9e75','C-Class':'#534ab7','Cayenne':'#d85a30','Minibus 11':'#534ab7','Minibus 14':'#534ab7','Minibus 16':'#534ab7','2x Minibus 14':'#534ab7','People carrier':'#888780','Standard':'#5a5a56','Standard / saloon':'#5a5a56','White Merc':'#888780','Multiple':'#9e1c1c','Maybach + Merc':'#c8a45a'};
-function vCol(v){if(!v)return'#7a6f6f';for(var k in VEH_COLORS){if(v.indexOf(k)>-1)return VEH_COLORS[k];}return'#7a6f6f';}
+function vCol(v,cat){
+  // colour_cat from DB takes priority (set at import time from source calendar)
+  if(cat==='red')return'#9e1c1c';
+  if(cat==='yellow')return'#c8a000';
+  if(cat==='orange')return'#e8820c';
+  if(cat==='blue')return'#2d6db5';
+  // Fall back to vehicle name heuristic
+  if(!v)return'#2d6db5';
+  var vl=v.toLowerCase();
+  if(vl.indexOf('roll')>-1||vl.indexOf('royce')>-1)return'#e8820c';
+  if(vl.indexOf('minibus')>-1||vl.indexOf('mini bus')>-1)return'#c8a000';
+  if(vl.indexOf('g-wagon')>-1||vl.indexOf('maybach')>-1||vl.indexOf('sq7')>-1||vl.indexOf('cayenne')>-1||vl.indexOf('v-class')>-1||vl.indexOf('c-class')>-1)return'#9e1c1c';
+  return'#2d6db5';
+}
 
 var drivers=[];
 
@@ -685,7 +709,11 @@ function mkJR(j,cont){
   if(j.date)meta.push(j.date);
   if(j.tm)meta.push(j.tm);
   if(j.drv&&j.drv!=='TBC')meta.push(j.drv);
-  el.innerHTML='<div style="flex:1;min-width:0"><div class="jn">'+e(j.name)+'</div><div class="jro">'+e(j.from)+' → '+e(j.to)+'</div><div class="jm">'+meta.join(' · ')+'</div></div><div style="text-align:right;flex-shrink:0"><div class="vt">'+e(j.veh||'TBC')+'</div><span class="sbdg s-'+j.status+'" style="display:block;margin-top:4px">'+(j.status==='new'?'New':j.status==='quoted'?'Quoted':j.status==='confirmed'?'Confirmed':'Done')+'</span></div>';
+  var col=vCol(j.veh,j.color_cat);
+  var statusLabel=j.status==='new'?'New':j.status==='quoted'?'Quoted':j.status==='confirmed'?'Confirmed':j.status==='cancelled'?'Cancelled':'Done';
+  el.innerHTML='<div style="width:4px;background:'+col+';border-radius:2px 0 0 2px;flex-shrink:0;margin:-10px 10px -10px -16px;align-self:stretch"></div>'
+    +'<div style="flex:1;min-width:0"><div class="jn">'+e(j.name)+'</div><div class="jro">'+e(j.from)+' → '+e(j.to)+'</div><div class="jm">'+meta.join(' · ')+'</div></div>'
+    +'<div style="text-align:right;flex-shrink:0"><div class="vt">'+e(j.veh||'TBC')+'</div><span class="sbdg s-'+j.status+'" style="display:block;margin-top:4px">'+statusLabel+'</span></div>';
   cont.appendChild(el);return el;
 }
 
@@ -704,7 +732,7 @@ function buildDash(){
 /* ── PIPELINE ── */
 function buildPipeline(){
   var pl=document.getElementById('plist');pl.innerHTML='';
-  var pj=jobs.filter(function(j){return j.status==='new'||j.status==='quoted';}).sort(function(a,b){return(a.ds||'zzz')>(b.ds||'zzz')?1:-1;});
+  var pj=jobs.filter(function(j){return (j.status==='new'||j.status==='quoted')&&j.status!=='cancelled';}).sort(function(a,b){return(a.ds||'zzz')>(b.ds||'zzz')?1:-1;});
   pj.forEach(function(j){mkJR(j,pl);});
 }
 
@@ -728,10 +756,32 @@ function buildBookings(){
 
 function filterB(btn,s){
   document.querySelectorAll('#s-b .chip').forEach(function(c){c.classList.remove('on');});btn.classList.add('on');
-  document.querySelectorAll('#blist .jr').forEach(function(r){
-    var show=s==='all'||(s==='today'&&r.dataset.ds===TODAY)||(s==='upcoming'&&r.dataset.ds>TODAY);
-    r.style.display=show?'flex':'none';
-  });
+  var bl=document.getElementById('blist');bl.innerHTML='';
+  var pl=document.getElementById('pastlist');
+  var pastLbl=document.getElementById('past-label');
+  if(s==='cancelled'){
+    if(pastLbl)pastLbl.style.display='none';
+    if(pl)pl.innerHTML='';
+    var cancelled=jobs.filter(function(j){return j.status==='cancelled';}).sort(function(a,b){return(a.ds||'')>(b.ds||'')?-1:1;});
+    if(!cancelled.length){bl.innerHTML='<div style="padding:20px 16px;font-size:13px;color:var(--txt3);font-style:italic">No cancelled bookings</div>';}
+    else{cancelled.forEach(function(j){mkJR(j,bl);});}
+  } else {
+    if(pastLbl)pastLbl.style.display='';
+    var conf=jobs.filter(function(j){
+      if(j.status!=='confirmed')return false;
+      if(s==='today')return j.ds===TODAY;
+      if(s==='upcoming')return j.ds>TODAY;
+      return true; // all
+    }).sort(function(a,b){return(a.ds||'')>(b.ds||'')?1:(a.ds||'')<(b.ds||'')?-1:(a.tm||'')>(b.tm||'')?1:-1;});
+    if(!conf.length){bl.innerHTML='<div style="padding:20px 16px;font-size:13px;color:var(--txt3);font-style:italic">No bookings for this filter</div>';}
+    else{conf.forEach(function(j){mkJR(j,bl);});}
+    if(pl){
+      pl.innerHTML='';
+      var done=jobs.filter(function(j){return j.status==='done';}).sort(function(a,b){return(a.ds||'')<(b.ds||'')?1:-1;});
+      done.forEach(function(j){mkJR(j,pl);});
+      var ct=document.getElementById('pastct');if(ct)ct.textContent=done.length+' job'+(done.length!==1?'s':'');
+    }
+  }
 }
 
 /* ── JOB DETAIL ── */
@@ -864,6 +914,20 @@ function renderJob(){
   h+='<div class="divider"></div>';
   h+='<div><label class="fl">Notes / special requests</label><textarea class="ft" onchange="updJ(&quot;notes&quot;,this.value)">'+e(j.notes||'')+'</textarea></div>';
   h+='</div>';
+
+  // Cancel button — always shown regardless of status
+  if(j.status!=='cancelled'){
+    h+='<div class="cancel-zone">';
+    h+='<button class="cancel-btn" data-id="'+e(j.id)+'" onclick="showCancelConfirm(this)">Cancel booking</button>';
+    h+='<div class="cancel-confirm" id="cancel-confirm-'+e(j.id)+'">';
+    h+='<div class="cancel-confirm-msg">Are you sure you want to cancel this booking?'+(j.linked_id?'<br>The linked '+( j.is_return?'outbound':'return')+' job will also be cancelled.':'')+'</div>';
+    h+='<div class="cancel-confirm-btns">';
+    h+='<button class="cancel-no" data-id="'+e(j.id)+'" onclick="hideCancelConfirm(this)">Keep booking</button>';
+    h+='<button class="cancel-yes" data-id="'+e(j.id)+'" onclick="confirmCancel(this)">Yes, cancel it</button>';
+    h+='</div></div></div>';
+  } else {
+    h+='<div class="cancel-zone" style="text-align:center"><span class="sbdg s-cancelled">Cancelled</span></div>';
+  }
 
   // Confirmed-only sections
   if(isConf){
@@ -1100,6 +1164,30 @@ async function sendQuote(id){
   renderJob();
 }
 
+function showCancelConfirm(btn){
+  var id=btn.dataset.id;
+  var el=document.getElementById('cancel-confirm-'+id);
+  if(el)el.classList.add('vis');
+}
+function hideCancelConfirm(btn){
+  var id=btn.dataset.id;
+  var el=document.getElementById('cancel-confirm-'+id);
+  if(el)el.classList.remove('vis');
+}
+async function confirmCancel(btn){
+  var id=btn.dataset.id;
+  var j=jobs.find(function(x){return x.id===id;});if(!j)return;
+  j.status='cancelled';
+  await dbSave(j);
+  // Cancel linked job too if exists
+  if(j.linked_id){
+    var linked=jobs.find(function(x){return x.id===j.linked_id;});
+    if(linked){linked.status='cancelled';await dbSave(linked);}
+  }
+  refreshLists();
+  renderJob();
+}
+
 function updJ(field,val){
   var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j)return;
   j[field]=val;
@@ -1238,7 +1326,23 @@ async function saveJob(){
 var CAL_VIEW='month';
 var wkStart=null; // Date object for Monday of current week
 
-function vCol(v){if(!v)return'#7a6f6f';var vc={'G-Wagon':'#9e1c1c','Maybach':'#c8a45a','Audi SQ7':'#378add','V-Class':'#1d9e75','C-Class':'#534ab7','Cayenne':'#d85a30','Minibus':'#534ab7','People carrier':'#888780','Standard':'#5a5a56','White Merc':'#888780','Multiple':'#9e1c1c'};for(var k in vc){if(v.indexOf(k)>-1)return vc[k];}return'#7a6f6f';}
+function vCol(v){
+  if(!v)return'#4a7fc1';
+  var vl=v.toLowerCase();
+  // Rolls Royce - Orange
+  if(vl.indexOf('roll')>-1||vl.indexOf('royce')>-1)return'#e8820c';
+  // Minibus - Yellow
+  if(vl.indexOf('minibus')>-1||vl.indexOf('mini bus')>-1)return'#d4a800';
+  // VIP vehicles - Red
+  if(vl.indexOf('g-wagon')>-1||vl.indexOf('gwagon')>-1||vl.indexOf('g63')>-1)return'#9e1c1c';
+  if(vl.indexOf('maybach')>-1)return'#9e1c1c';
+  if(vl.indexOf('sq7')>-1)return'#9e1c1c';
+  if(vl.indexOf('cayenne')>-1)return'#9e1c1c';
+  if(vl.indexOf('v-class')>-1)return'#9e1c1c';
+  if(vl.indexOf('c-class')>-1)return'#9e1c1c';
+  // Standard / People carrier - Blue
+  return'#2d6db5';
+}
 
 function p2ds(y,m,d){return y+'-'+(m+1<10?'0'+(m+1):m+1)+'-'+(d<10?'0'+d:d);}
 
@@ -1279,7 +1383,7 @@ function renderCal(){
     var pillsH='';
     dayJ.slice(0,maxShow).forEach(function(b){
       var label=(b.tm?b.tm+' ':'')+b.name;
-      pillsH+='<div class="cal-pill" style="background:'+vCol(b.veh)+'">'+e(label)+'</div>';
+      pillsH+='<div class="cal-pill" style="background:'+vCol(b.veh,b.color_cat)+'">'+e(label)+'</div>';
     });
     if(dayJ.length>maxShow)pillsH+='<div class="cal-pill-more">+'+(dayJ.length-maxShow)+' more</div>';
     el.innerHTML='<span class="cal-cn">'+c.d+'</span><div class="cal-pills">'+pillsH+'</div>';
@@ -1310,7 +1414,7 @@ function renderCalDay(){
 
 function buildCJ(b){
   var h='<div class="cj" data-id="'+e(b.id)+'" onclick="openJobFromEl(this)">';
-  h+='<div class="cj-bar" style="background:'+vCol(b.veh)+'"></div>';
+  h+='<div class="cj-bar" style="background:'+vCol(b.veh,b.color_cat)+'"></div>';
   h+='<div class="cj-body"><div class="cj-r1"><span class="cj-time">'+e(b.tm||'TBC')+'</span><span class="cj-drv">'+e(b.drv||'TBC')+'</span></div>';
   h+='<div class="cj-route">'+e(b.from)+' &rarr; '+e(b.to)+'</div>';
   h+='<div class="cj-name">'+e(b.name)+'</div>';
@@ -1626,7 +1730,8 @@ function dbToJob(r){
     drv:r.driver_name||'TBC',dp:r.driver_phone||'',
     linked_id:r.linked_job_id||null,is_return:r.is_return||false,
     notes:r.notes||'',
-    from:r.pickup?ab(r.pickup):'?',to:r.dropoff?ab(r.dropoff):'?'
+    from:r.pickup?ab(r.pickup):'?',to:r.dropoff?ab(r.dropoff):'?',
+    color_cat:r.color_cat||''
   };
 }
 function jobToDb(j){
@@ -1646,7 +1751,8 @@ function jobToDb(j){
     quote_sent:!!j.quote_sent,quote_sent_at:j.quote_sent_at||null,
     avail_ack:!!j.avail_ack,
     driver_name:j.drv||'TBC',driver_phone:j.dp||null,
-    linked_job_id:j.linked_id||null,is_return:!!j.is_return,notes:j.notes||null
+    linked_job_id:j.linked_id||null,is_return:!!j.is_return,notes:j.notes||null,
+    color_cat:j.color_cat||null
   };
 }
 async function dbLoadAll(){
