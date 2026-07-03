@@ -1,61 +1,40 @@
-// Kennedy Executive Travel — Service Worker
-const CACHE_NAME = 'ket-dispatch-v3';
-const ASSETS = [
-  '/',
-  '/index.html',
-  '/logo.png',
-  '/app-icon.jpg',
-  '/manifest.json'
-];
+// Kennedy Executive Travel — Service Worker v4
+const CACHE_NAME = 'ket-dispatch-v4';
+const STATIC = ['/logo.png','/app-icon.png','/manifest.json'];
 
 self.addEventListener('install', function(e){
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache){
-      return cache.addAll(ASSETS);
-    })
-  );
+  e.waitUntil(caches.open(CACHE_NAME).then(function(c){return c.addAll(STATIC);}));
   self.skipWaiting();
 });
 
 self.addEventListener('activate', function(e){
   e.waitUntil(
     caches.keys().then(function(keys){
-      return Promise.all(
-        keys.filter(function(k){return k!==CACHE_NAME;}).map(function(k){return caches.delete(k);})
-      );
+      return Promise.all(keys.filter(function(k){return k!==CACHE_NAME;}).map(function(k){return caches.delete(k);}));
     })
   );
   self.clients.claim();
 });
 
 self.addEventListener('fetch', function(e){
-  // Always network-first for the main HTML file so updates are picked up
-  if(e.request.url.endsWith('/') || e.request.url.endsWith('/index.html')){
-    e.respondWith(
-      fetch(e.request).then(function(response){
-        var clone = response.clone();
-        caches.open(CACHE_NAME).then(function(cache){cache.put(e.request,clone);});
-        return response;
-      }).catch(function(){
-        return caches.match(e.request);
-      })
-    );
+  var url = e.request.url;
+  // Never cache the main HTML - always get fresh
+  if(url.endsWith('/')||url.endsWith('/index.html')||url.endsWith('.html')){
+    e.respondWith(fetch(e.request,{cache:'no-store'}));
     return;
   }
-  // Network first for Supabase
-  if(e.request.url.includes('supabase.co')){
-    e.respondWith(fetch(e.request).catch(function(){
-      return new Response('[]',{headers:{'Content-Type':'application/json'}});
-    }));
+  // Never cache Supabase
+  if(url.includes('supabase.co')){
+    e.respondWith(fetch(e.request));
     return;
   }
-  // Cache first for other assets
+  // Cache static assets
   e.respondWith(
     caches.match(e.request).then(function(cached){
-      return cached || fetch(e.request).then(function(response){
-        var clone = response.clone();
-        caches.open(CACHE_NAME).then(function(cache){cache.put(e.request,clone);});
-        return response;
+      return cached||fetch(e.request).then(function(r){
+        var c=r.clone();
+        caches.open(CACHE_NAME).then(function(cache){cache.put(e.request,c);});
+        return r;
       });
     })
   );
