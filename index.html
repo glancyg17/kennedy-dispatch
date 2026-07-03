@@ -1854,15 +1854,42 @@ var PW_CODE='258000';
 var PW_KEY='ket_auth';
 var pwEntry='';
 
+
+function pwClick(wrong){
+  try{
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    var osc=ctx.createOscillator();
+    var gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    if(wrong){
+      // Two low beeps for wrong code
+      osc.frequency.value=200;
+      gain.gain.setValueAtTime(0.15,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.15);
+      osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.15);
+    } else {
+      // Short high click for digit
+      osc.frequency.value=1100;
+      gain.gain.setValueAtTime(0.08,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.04);
+      osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.04);
+    }
+    setTimeout(function(){ctx.close();},300);
+  }catch(e){}
+}
 function pwKey(d){
   if(d===''||pwEntry.length>=6)return;
   pwEntry+=d;
+  if(navigator.vibrate)navigator.vibrate(8);
+  pwClick(false);
   pwUpdateDots();
   if(pwEntry.length===6)setTimeout(pwCheck,120);
 }
 
 function pwDel(){
+  if(!pwEntry.length)return;
   pwEntry=pwEntry.slice(0,-1);
+  if(navigator.vibrate)navigator.vibrate(5);
   pwUpdateDots();
   document.getElementById('pw-err').textContent='';
 }
@@ -1880,6 +1907,8 @@ function pwCheck(){
     var sc=document.getElementById('pw-screen');
     if(sc)sc.style.display='none';
   } else {
+    if(navigator.vibrate)navigator.vibrate([60,40,60]);
+    pwClick(true);
     document.getElementById('pw-err').textContent='Incorrect code';
     pwEntry='';
     pwUpdateDots();
