@@ -348,6 +348,44 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .cancel-no{background:var(--surf2);border:0.5px solid var(--blt2);border-radius:var(--r);padding:10px;font-size:13px;font-weight:700;color:var(--txt2);cursor:pointer;font-family:inherit}
 .cancel-yes{background:#b02020;border:none;border-radius:var(--r);padding:10px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit}
 .s-cancelled{background:#f0e0e0;color:#b02020}
+/* ── CALENDAR SWIPE ── */
+(function(){
+  var wrap=null,sx=0,sy=0,moved=false;
+  function onTouchStart(e){
+    sx=e.touches[0].clientX;
+    sy=e.touches[0].clientY;
+    moved=false;
+  }
+  function onTouchMove(e){
+    var dx=e.touches[0].clientX-sx;
+    var dy=e.touches[0].clientY-sy;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>8){
+      e.preventDefault();moved=true;
+    }
+  }
+  function onTouchEnd(e){
+    if(!moved)return;
+    var dx=e.changedTouches[0].clientX-sx;
+    if(Math.abs(dx)<40)return;
+    if(dx<0){
+      // swipe left = next
+      if(CAL_VIEW==='month')calNext();
+      else if(CAL_VIEW==='week')wkNext();
+    } else {
+      // swipe right = prev
+      if(CAL_VIEW==='month')calPrev();
+      else if(CAL_VIEW==='week')wkPrev();
+    }
+  }
+  window.addEventListener('load',function(){
+    wrap=document.getElementById('cal-wrap');
+    if(!wrap)return;
+    wrap.addEventListener('touchstart',onTouchStart,{passive:true});
+    wrap.addEventListener('touchmove',onTouchMove,{passive:false});
+    wrap.addEventListener('touchend',onTouchEnd,{passive:true});
+  });
+})();
+
 /* __ EXPIRY STATUS __ */
 .exp-ok{color:var(--oktxt);font-size:11px;font-weight:600}
 .exp-upcoming{color:#7a4800;font-size:11px;font-weight:600}
@@ -467,7 +505,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 
 <!-- CALENDAR -->
 <div id="s-c" class="scr">
-  <div class="cal-wrap">
+  <div class="cal-wrap" id="cal-wrap">
     <div class="cal-viewtog">
       <button class="cvt-btn on" id="cvt-month" onclick="setCalView('month')">Month</button>
       <button class="cvt-btn" id="cvt-week" onclick="setCalView('week')">Week</button>
