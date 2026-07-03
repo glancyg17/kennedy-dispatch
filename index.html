@@ -348,30 +348,21 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .cancel-no{background:var(--surf2);border:0.5px solid var(--blt2);border-radius:var(--r);padding:10px;font-size:13px;font-weight:700;color:var(--txt2);cursor:pointer;font-family:inherit}
 .cancel-yes{background:#b02020;border:none;border-radius:var(--r);padding:10px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit}
 .s-cancelled{background:#f0e0e0;color:#b02020}
-/* ── CALENDAR SWIPE ── */
-var _calSwipeInit=false;
-function initCalSwipe(){
-  if(_calSwipeInit)return;
-  var wrap=document.getElementById('cal-wrap');
-  if(!wrap)return;
-  var sx=0,sy=0,moved=false;
-  wrap.addEventListener('touchstart',function(e){
-    sx=e.touches[0].clientX;sy=e.touches[0].clientY;moved=false;
-  },{passive:true});
-  wrap.addEventListener('touchmove',function(e){
-    var dx=e.touches[0].clientX-sx;
-    var dy=e.touches[0].clientY-sy;
-    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>8){e.preventDefault();moved=true;}
-  },{passive:false});
-  wrap.addEventListener('touchend',function(e){
-    if(!moved)return;
-    var dx=e.changedTouches[0].clientX-sx;
-    if(Math.abs(dx)<40)return;
-    if(dx<0){if(CAL_VIEW==='month')calNext();else if(CAL_VIEW==='week')wkNext();}
-    else{if(CAL_VIEW==='month')calPrev();else if(CAL_VIEW==='week')wkPrev();}
-  },{passive:true});
-  _calSwipeInit=true;
-}
+
+/* ── PASSWORD SCREEN ── */
+#pw-screen{position:fixed;inset:0;background:#0c0b0b;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:40px 20px}
+@keyframes pwShake{0%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}100%{transform:translateX(0)}}
+#pw-screen img{width:200px;max-width:70vw;object-fit:contain}
+.pw-dots{display:flex;gap:14px;justify-content:center}
+.pw-dot{width:14px;height:14px;border-radius:50%;background:#2a2626;border:1.5px solid #3a3030;transition:background .15s}
+.pw-dot.filled{background:var(--red);border-color:var(--red)}
+.pw-err{font-size:13px;color:#c04040;font-weight:600;min-height:18px;text-align:center}
+.pw-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:240px}
+.pw-key{background:#1e1c1c;border:0.5px solid #2a2626;border-radius:12px;height:66px;font-size:24px;font-weight:300;color:#f0ebe0;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;user-select:none}
+.pw-key:active{background:#2a2626}
+.pw-key.del{font-size:18px}
+/* __ CALENDAR SWIPE __ */
+
 
 /* __ EXPIRY STATUS __ */
 .exp-ok{color:var(--oktxt);font-size:11px;font-weight:600}
@@ -412,6 +403,32 @@ function initCalSwipe(){
 </style>
 </head>
 <body>
+<div id="pw-screen">
+  <img src="./app-icon.png" alt="KET">
+  <div class="pw-dots">
+    <div class="pw-dot" id="pd0"></div>
+    <div class="pw-dot" id="pd1"></div>
+    <div class="pw-dot" id="pd2"></div>
+    <div class="pw-dot" id="pd3"></div>
+    <div class="pw-dot" id="pd4"></div>
+    <div class="pw-dot" id="pd5"></div>
+  </div>
+  <div class="pw-err" id="pw-err"></div>
+  <div class="pw-pad">
+    <button class="pw-key" onclick="pwKey('1')">1</button>
+    <button class="pw-key" onclick="pwKey('2')">2</button>
+    <button class="pw-key" onclick="pwKey('3')">3</button>
+    <button class="pw-key" onclick="pwKey('4')">4</button>
+    <button class="pw-key" onclick="pwKey('5')">5</button>
+    <button class="pw-key" onclick="pwKey('6')">6</button>
+    <button class="pw-key" onclick="pwKey('7')">7</button>
+    <button class="pw-key" onclick="pwKey('8')">8</button>
+    <button class="pw-key" onclick="pwKey('9')">9</button>
+    <button class="pw-key" onclick="pwKey('')"></button>
+    <button class="pw-key" onclick="pwKey('0')">0</button>
+    <button class="pw-key del" onclick="pwDel()">⌫</button>
+  </div>
+</div>
 <div class="app">
 <div id="loading-overlay" style="display:flex;position:fixed;inset:0;background:#0c0b0b;z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:24px;font-family:-apple-system,sans-serif"><img src="./app-icon.png" alt="Kennedy Executive Travel" style="width:auto;height:auto;max-width:260px;max-height:160px;object-fit:contain;opacity:1"><div style="font-size:12px;color:#4a4040;font-weight:500;letter-spacing:0.08em;text-transform:uppercase">Loading...</div></div>
 
@@ -543,12 +560,10 @@ function initCalSwipe(){
     <div class="st-body" id="st-cals">
       <button onclick="window.open('https://calendar.google.com/calendar/r/week?'+CP)" style="width:100%;background:var(--red);color:#fff;border:none;border-radius:var(--r);padding:11px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px">&#128197; View all vehicles</button>
       <div style="margin-bottom:10px;font-size:12px;color:var(--txt2);font-weight:500;line-height:1.5">To get access on your phone, ask to be added as a viewer on each calendar.</div>
-      <div class="ci"><div class="cd" style="background:#9e1c1c"></div><div class="cin">G-Wagon</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=cef23e708f7600f0b409cf05cdbe2d194adba4d9bf452b672d29071a0168013f%40group.calendar.google.com')">Open</button></div>
-      <div class="ci"><div class="cd" style="background:#c8a45a"></div><div class="cin">Maybach</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=ca80a206893ad6a9207c439f6c5e717b00b9b27e62b8046a0b2d51149f483412%40group.calendar.google.com')">Open</button></div>
-      <div class="ci"><div class="cd" style="background:#378add"></div><div class="cin">Audi SQ7</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=ea22b0534f25b59b65ad06b1f11b1f555f88b3a8618ccca362146e8bb206f1d1%40group.calendar.google.com')">Open</button></div>
-      <div class="ci"><div class="cd" style="background:#1d9e75"></div><div class="cin">V-Class</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=2cf5309de3aeb285dd8ae664a694389a993c7db6b0b0e0c73288b3b1af6a9284%40group.calendar.google.com')">Open</button></div>
-      <div class="ci"><div class="cd" style="background:#534ab7"></div><div class="cin">Minibuses</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=6effdc0135ec1b70dda331e3ebc26dbf3e71e65812ca842f4eabb362c86fc2e0%40group.calendar.google.com')">Open</button></div>
-      <div class="ci"><div class="cd" style="background:#888780"></div><div class="cin">Standard / People carrier</div><button class="cop" onclick="window.open('https://calendar.google.com/calendar/r?cid=3fa1b62815b05a6ab5ff4c5b1dd7bceca4b0051ce819b71b253c04e0e77f5b66%40group.calendar.google.com')">Open</button></div>
+      <div class="ci"><div class="cd" style="background:#e8820c"></div><div class="cin">Rolls Royce</div><button class="cop" id="cal-rr" onclick="window.open('https://calendar.google.com/calendar/r?cid=d8cf79655efa1c81084b778e0b3ec40676040f4b9581b7b1699fad9706da3aae%40group.calendar.google.com')" data-url="https://calendar.google.com/calendar/r?cid=d8cf79655efa1c81084b778e0b3ec40676040f4b9581b7b1699fad9706da3aae%40group.calendar.google.com">Open</button></div>
+      <div class="ci"><div class="cd" style="background:#9e1c1c"></div><div class="cin">VIP (G-Wagon / Maybach / SQ7)</div><button class="cop" id="cal-vip" onclick="window.open('https://calendar.google.com/calendar/r?cid=b7d1e7a6f536ed6f9fab7eb690e57649f595354e077db669608de69d01f884a1%40group.calendar.google.com')" data-url="https://calendar.google.com/calendar/r?cid=b7d1e7a6f536ed6f9fab7eb690e57649f595354e077db669608de69d01f884a1%40group.calendar.google.com">Open</button></div>
+      <div class="ci"><div class="cd" style="background:#c8a000"></div><div class="cin">Minibuses / NCW</div><button class="cop" id="cal-bus" onclick="window.open('https://calendar.google.com/calendar/r?cid=e8b1f814c6a6e9154eebcf7c762fb7e0245f9b4e1d81f2b45cc846092809200e%40group.calendar.google.com')" data-url="https://calendar.google.com/calendar/r?cid=e8b1f814c6a6e9154eebcf7c762fb7e0245f9b4e1d81f2b45cc846092809200e%40group.calendar.google.com">Open</button></div>
+      <div class="ci"><div class="cd" style="background:#2d6db5"></div><div class="cin">Standard Service</div><button class="cop" id="cal-std" onclick="window.open('https://calendar.google.com/calendar/r?cid=b887705bfc47f5f23f27b1af75236518729a22d8f5d6f436285f762ca69a287f%40group.calendar.google.com')" data-url="https://calendar.google.com/calendar/r?cid=b887705bfc47f5f23f27b1af75236518729a22d8f5d6f436285f762ca69a287f%40group.calendar.google.com">Open</button></div>
     </div>
   </div>
   <div class="st-section" id="st-pricing-sec">
@@ -585,8 +600,8 @@ window.addEventListener('appinstalled', function() {
 var SUPA_URL='https://mpdrshyxefrptitbqnbi.supabase.co';
 var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wZHJzaHl4ZWZycHRpdGJxbmJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NzcyNzIsImV4cCI6MjA5ODU1MzI3Mn0.5bkceScowY-26qnG0FkMXaqTZstLQe3GvbO8eooesFs';
 var supa=supabase.createClient(SUPA_URL,SUPA_KEY);
-var CIDS=['cef23e708f7600f0b409cf05cdbe2d194adba4d9bf452b672d29071a0168013f@group.calendar.google.com','ca80a206893ad6a9207c439f6c5e717b00b9b27e62b8046a0b2d51149f483412@group.calendar.google.com','ea22b0534f25b59b65ad06b1f11b1f555f88b3a8618ccca362146e8bb206f1d1@group.calendar.google.com','7afb1b78ac69cacddc3d36f80a7ae0e0d972032e09e5713703e1a8f6bf8ccf7b@group.calendar.google.com','87ac669239d1087538709ae58c70be6fe56489fe3e65ea85c2727290c1877c28@group.calendar.google.com','2cf5309de3aeb285dd8ae664a694389a993c7db6b0b0e0c73288b3b1af6a9284@group.calendar.google.com','6effdc0135ec1b70dda331e3ebc26dbf3e71e65812ca842f4eabb362c86fc2e0@group.calendar.google.com','3fa1b62815b05a6ab5ff4c5b1dd7bceca4b0051ce819b71b253c04e0e77f5b66@group.calendar.google.com'];
-var CP=CIDS.map(function(c){return'cid='+encodeURIComponent(c);}).join('&');
+var CIDS=['d8cf79655efa1c81084b778e0b3ec40676040f4b9581b7b1699fad9706da3aae@group.calendar.google.com','b7d1e7a6f536ed6f9fab7eb690e57649f595354e077db669608de69d01f884a1@group.calendar.google.com','e8b1f814c6a6e9154eebcf7c762fb7e0245f9b4e1d81f2b45cc846092809200e@group.calendar.google.com','b887705bfc47f5f23f27b1af75236518729a22d8f5d6f436285f762ca69a287f@group.calendar.google.com']; // George's Google Calendars
+var CP=CIDS.map(function(c){return'cid='+encodeURIComponent(c);}).join('&'); // Will populate once George creates calendars
 
 var _td=new Date();var TODAY=_td.getFullYear()+'-'+((_td.getMonth()+1)<10?'0':'')+(_td.getMonth()+1)+'-'+(_td.getDate()<10?'0':'')+_td.getDate();
 var MAINS=['d','p','b','c','s'];
@@ -697,7 +712,7 @@ function setChrome(s){
 function nav(s){
   SCREENS.forEach(function(n){var el=document.getElementById('s-'+n);if(el)el.className='scr'+(n===s?' on':'');});
   setChrome(s);
-  if(s==='c'){setCalView(CAL_VIEW);initCalSwipe();}
+  if(s==='c')setCalView(CAL_VIEW);
   hist=[];cur=s;
   var el=document.getElementById('s-'+s);if(el)el.scrollTop=0;
 }
@@ -1353,6 +1368,7 @@ async function saveJob(){
 /* ── CALENDAR ── */
 var CAL_VIEW='month';
 var wkStart=null; // Date object for Monday of current week
+// calY/calM initialised to current month dynamically
 
 // vCol defined above
 
@@ -1855,4 +1871,3 @@ if('serviceWorker' in navigator){
 </script>
 </body>
 </html>
-
