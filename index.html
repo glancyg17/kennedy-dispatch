@@ -227,14 +227,28 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .cj-veh{font-size:10px;font-weight:600;color:var(--txt3);margin-top:3px}
 .cal-nojobs{font-size:13px;color:var(--txt3);font-style:italic}
 
-/* Week view */
-.wk-day{border-bottom:0.5px solid var(--blt)}
-.wk-day-hdr{display:flex;align-items:baseline;gap:8px;padding:10px 12px 6px;background:var(--surf2)}
-.wk-day-name{font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em}
-.wk-day-num{font-size:16px;font-weight:800;color:var(--txt)}
-.wk-day-hdr.today .wk-day-num{color:var(--red)}
-.wk-day-ct{font-size:11px;color:var(--txt3);font-weight:500;margin-left:auto}
-.wk-jobs{padding:6px 12px 10px}
+/* Day view */
+.dv-hdr{display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px}
+.dv-date{font-size:15px;font-weight:700;color:var(--txt);text-align:center;flex:1}
+.dv-date .dv-day{font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;display:block}
+.dv-date .dv-num{font-size:26px;font-weight:800;line-height:1.1;display:block}
+.dv-date.today .dv-num{color:var(--red)}
+.dv-scroll{overflow-y:auto;position:relative}
+.dv-grid{display:flex;position:relative;padding-left:44px}
+.dv-times{position:absolute;left:0;top:0;width:44px}
+.dv-hour-lbl{position:absolute;left:0;width:38px;text-align:right;font-size:9px;font-weight:600;color:var(--txt3);transform:translateY(-6px)}
+.dv-lines{position:absolute;left:44px;right:0;top:0}
+.dv-hline{position:absolute;left:0;right:0;height:0.5px;background:var(--blt)}
+.dv-hline-half{position:absolute;left:0;right:0;height:0.5px;background:var(--blt);opacity:0.4;border-style:dashed}
+.dv-events{position:relative;flex:1;min-height:100%}
+.dv-evt{position:absolute;border-radius:6px;padding:3px 6px;cursor:pointer;overflow:hidden;box-sizing:border-box;border:1.5px solid rgba(255,255,255,0.15)}
+.dv-evt:active{opacity:0.8}
+.dv-evt-time{font-size:9px;font-weight:700;color:rgba(255,255,255,0.85);display:block}
+.dv-evt-name{font-size:11px;font-weight:700;color:#fff;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dv-evt-route{font-size:9px;color:rgba(255,255,255,0.75);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dv-empty{padding:30px 16px;text-align:center;font-size:13px;color:var(--txt3);font-style:italic}
+.dv-today-line{position:absolute;left:0;right:0;height:2px;background:var(--red);z-index:5}
+.dv-today-dot{position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--red)}
 
 /* List view */
 .lst-group{padding:10px 16px 4px}
@@ -515,7 +529,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
   <div class="cal-wrap" id="cal-wrap">
     <div class="cal-viewtog">
       <button class="cvt-btn on" id="cvt-month" onclick="setCalView('month')">Month</button>
-      <button class="cvt-btn" id="cvt-week" onclick="setCalView('week')">Week</button>
+      <button class="cvt-btn" id="cvt-week" onclick="setCalView('week')">Day</button>
       <button class="cvt-btn" id="cvt-list" onclick="setCalView('list')">List</button>
     </div>
 
@@ -531,14 +545,14 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
       <div class="cal-djobs" id="cal-djobs"></div>
     </div>
 
-    <!-- WEEK VIEW -->
+    <!-- DAY VIEW -->
     <div id="calv-week" style="display:none">
-      <div class="cal-hdr">
-        <button class="cal-nav" onclick="wkPrev()">&#8249;</button>
-        <div class="cal-month" id="wk-range"></div>
-        <button class="cal-nav" onclick="wkNext()">&#8250;</button>
+      <div class="dv-hdr">
+        <button class="cal-nav" onclick="dvPrev()">&#8249;</button>
+        <div class="dv-date" id="dv-date-lbl"><span class="dv-day"></span><span class="dv-num"></span></div>
+        <button class="cal-nav" onclick="dvNext()">&#8250;</button>
       </div>
-      <div id="wk-days"></div>
+      <div class="dv-scroll" id="dv-scroll"><div id="dv-body"></div></div>
     </div>
 
     <!-- LIST VIEW -->
@@ -1370,7 +1384,6 @@ async function saveJob(){
 
 /* ── CALENDAR ── */
 var CAL_VIEW='month';
-var wkStart=null; // Date object for Monday of current week
 // calY/calM initialised to current month dynamically
 
 // vCol defined above
@@ -1459,34 +1472,141 @@ function openJobFromEl(el){openJob(el.dataset.id);}
 function calPrev(){if(calM===0){calM=11;calY--;}else{calM--;}renderCal();}
 function calNext(){if(calM===11){calM=0;calY++;}else{calM++;}renderCal();}
 
-/* ── WEEK ── */
-function mondayOf(d){var day=(d.getDay()+6)%7;var m=new Date(d);m.setDate(d.getDate()-day);m.setHours(12,0,0,0);return m;}
+/* ── DAY VIEW ── */
+var dvDate = null; // current day view date
+
 function dToDs(d){return d.getFullYear()+'-'+((d.getMonth()+1)<10?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
 
 function renderWeek(){
-  var MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var end=new Date(wkStart);end.setDate(wkStart.getDate()+6);
-  var label=wkStart.getDate()+' '+MN[wkStart.getMonth()]+' \u2013 '+end.getDate()+' '+MN[end.getMonth()];
-  document.getElementById('wk-range').textContent=label;
-  var dayNames=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-  var wd=document.getElementById('wk-days');wd.innerHTML='';
-  for(var i=0;i<7;i++){
-    var d=new Date(wkStart);d.setDate(wkStart.getDate()+i);
-    var ds=dToDs(d);
-    var dayJ=jobs.filter(function(x){return x.ds===ds&&(x.status==='confirmed'||x.status==='done');}).sort(function(a,b){return(a.tm||'')>(b.tm||'')?1:-1;});
-    var isT=ds===TODAY;
-    var sec=document.createElement('div');sec.className='wk-day';
-    var h='<div class="wk-day-hdr'+(isT?' today':'')+'"><span class="wk-day-name">'+dayNames[i]+'</span><span class="wk-day-num">'+d.getDate()+'</span><span class="wk-day-ct">'+dayJ.length+' job'+(dayJ.length!==1?'s':'')+'</span></div>';
-    h+='<div class="wk-jobs">';
-    if(dayJ.length){dayJ.forEach(function(b){h+=buildCJ(b);});}
-    else{h+='<div class="cal-nojobs">No bookings</div>';}
+  // Entry point called by setCalView('week') — init dvDate if needed
+  if(!dvDate){dvDate=new Date(TODAY+'T12:00:00');}
+  renderDayView();
+}
+function wkPrev(){dvPrev();}
+function wkNext(){dvNext();}
+function dvPrev(){dvDate.setDate(dvDate.getDate()-1);renderDayView();}
+function dvNext(){dvDate.setDate(dvDate.getDate()+1);renderDayView();}
+
+function renderDayView(){
+  if(!dvDate)dvDate=new Date(TODAY+'T12:00:00');
+  var ds=dToDs(dvDate);
+  var isToday=ds===TODAY;
+  var DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  // Update header
+  var lbl=document.getElementById('dv-date-lbl');
+  if(lbl){
+    lbl.className='dv-date'+(isToday?' today':'');
+    lbl.querySelector('.dv-day').textContent=DAY[dvDate.getDay()];
+    lbl.querySelector('.dv-num').textContent=dvDate.getDate()+' '+MON[dvDate.getMonth()];
+  }
+
+  // Get jobs for this day
+  var dayJ=jobs.filter(function(x){
+    return x.ds===ds&&(x.status==='confirmed'||x.status==='done');
+  }).sort(function(a,b){return(a.tm||'00:00')>(b.tm||'00:00')?1:-1;});
+
+  var body=document.getElementById('dv-body');
+  if(!body)return;
+
+  if(!dayJ.length){
+    body.innerHTML='<div class="dv-empty">No confirmed bookings</div>';
+    return;
+  }
+
+  // Determine time range
+  var minH=24,maxH=0;
+  dayJ.forEach(function(j){
+    var h=j.tm?parseInt(j.tm.split(':')[0]):9;
+    if(h<minH)minH=h;
+    // Each job gets 1.5hr slot minimum
+    if(h+2>maxH)maxH=h+2;
+  });
+  minH=Math.max(0,minH-1);
+  maxH=Math.min(24,maxH+1);
+
+  var PX_PER_HR=64; // pixels per hour
+  var totalH=(maxH-minH)*PX_PER_HR;
+
+  // Build layout — detect overlapping events and assign columns
+  var EVT_DUR=60; // default 60 min duration
+  var placed=[];
+  dayJ.forEach(function(j){
+    var startMin=j.tm?parseInt(j.tm.split(':')[0])*60+parseInt(j.tm.split(':')[1]):9*60;
+    var endMin=startMin+EVT_DUR;
+    // Find which column this fits in
+    var col=0;
+    while(true){
+      var fits=true;
+      for(var k=0;k<placed.length;k++){
+        if(placed[k].col===col&&placed[k].endMin>startMin&&placed[k].startMin<endMin){
+          fits=false;break;
+        }
+      }
+      if(fits)break;
+      col++;
+    }
+    placed.push({j:j,startMin:startMin,endMin:endMin,col:col});
+  });
+  var maxCol=0;placed.forEach(function(p){if(p.col>maxCol)maxCol=p.col;});
+  var numCols=maxCol+1;
+
+  // Render
+  var h='<div class="dv-grid" style="height:'+(totalH+20)+'px">';
+  // Time labels and lines
+  h+='<div class="dv-times">';
+  for(var hr=minH;hr<=maxH;hr++){
+    var top=(hr-minH)*PX_PER_HR;
+    h+='<div class="dv-hour-lbl" style="top:'+top+'px">'+(hr<10?'0':'')+hr+':00</div>';
+  }
+  h+='</div>';
+  // Grid lines
+  h+='<div class="dv-lines" style="height:'+(totalH+20)+'px">';
+  for(var hr2=minH;hr2<=maxH;hr2++){
+    var top2=(hr2-minH)*PX_PER_HR;
+    h+='<div class="dv-hline" style="top:'+top2+'px"></div>';
+    if(hr2<maxH)h+='<div class="dv-hline-half" style="top:'+(top2+PX_PER_HR/2)+'px"></div>';
+  }
+  // Today line
+  if(isToday){
+    var now=new Date();
+    var nowMin=now.getHours()*60+now.getMinutes();
+    var nowTop=((nowMin/60)-minH)*PX_PER_HR;
+    if(nowTop>0&&nowTop<totalH){
+      h+='<div class="dv-today-line" style="top:'+nowTop+'px"><div class="dv-today-dot"></div></div>';
+    }
+  }
+  h+='</div>';
+  // Events
+  h+='<div class="dv-events">';
+  placed.forEach(function(p){
+    var j=p.j;
+    var top3=((p.startMin/60)-minH)*PX_PER_HR;
+    var height=Math.max(28,(p.endMin-p.startMin)/60*PX_PER_HR-2);
+    var colW=100/numCols;
+    var left=p.col*colW;
+    var col=vCol(j.veh,j.color_cat);
+    h+='<div class="dv-evt" data-id="'+e(j.id)+'" onclick="openJobFromEl(this)" style="'
+      +'top:'+top3+'px;height:'+height+'px;'
+      +'left:calc('+left+'% + 2px);width:calc('+colW+'% - 4px);'
+      +'background:'+col+'">';
+    h+='<span class="dv-evt-time">'+e(j.tm||'TBC')+'</span>';
+    h+='<span class="dv-evt-name">'+e(j.name)+'</span>';
+    if(height>40)h+='<span class="dv-evt-route">'+e(j.from)+' → '+e(j.to)+'</span>';
     h+='</div>';
-    sec.innerHTML=h;
-    wd.appendChild(sec);
+  });
+  h+='</div></div>';
+
+  body.innerHTML=h;
+
+  // Scroll to first event minus a bit
+  var scroll=document.getElementById('dv-scroll');
+  if(scroll){
+    var firstTop=Math.max(0,(placed[0].startMin/60-minH-0.5)*PX_PER_HR);
+    scroll.scrollTop=firstTop;
   }
 }
-function wkPrev(){wkStart.setDate(wkStart.getDate()-7);renderWeek();}
-function wkNext(){wkStart.setDate(wkStart.getDate()+7);renderWeek();}
 
 /* ── LIST ── */
 function renderList(){
@@ -1937,6 +2057,28 @@ async function init(){
   buildDash();buildPipeline();buildBookings();buildStDrvs();buildStFleet();buildStPricing();
   subscribeRealtime();
 }
+// Swipe for calendar (month + day)
+(function(){
+  var tx=0,ty=0,ts=0;
+  document.addEventListener('touchstart',function(e){
+    tx=e.touches[0].clientX;ty=e.touches[0].clientY;ts=Date.now();
+  },{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(cur!=='c')return;
+    var dx=e.changedTouches[0].clientX-tx;
+    var dy=e.changedTouches[0].clientY-ty;
+    var dt=Date.now()-ts;
+    // Must be fast (<400ms), mostly horizontal, and >50px
+    if(dt>400||Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy)*1.5)return;
+    if(dx<0){
+      if(CAL_VIEW==='month')calNext();
+      else if(CAL_VIEW==='week')dvNext();
+    } else {
+      if(CAL_VIEW==='month')calPrev();
+      else if(CAL_VIEW==='week')dvPrev();
+    }
+  },{passive:true});
+})();
 pwInit();
 init();
 
