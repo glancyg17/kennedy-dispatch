@@ -1812,6 +1812,13 @@ async function init(){
   showLoading();
   await dbLoadAll();
   hideLoading();
+  // Debug: log first job to check color_cat field
+  if(jobs.length){
+    var sj=jobs[0];
+    console.log('Sample job:',JSON.stringify({id:sj.id,name:sj.name,veh:sj.veh,color_cat:sj.color_cat,status:sj.status}));
+  } else {
+    console.log('No jobs loaded');
+  }
   buildDash();buildPipeline();buildBookings();buildStDrvs();buildStFleet();buildStPricing();
   subscribeRealtime();
 }
