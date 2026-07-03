@@ -1,9 +1,10 @@
 // Kennedy Executive Travel — Service Worker
-const CACHE_NAME = 'ket-dispatch-v1';
+const CACHE_NAME = 'ket-dispatch-v2';
 const ASSETS = [
   '/',
   '/index.html',
   '/logo.png',
+  '/app-icon.jpg',
   '/manifest.json'
 ];
 
@@ -28,16 +29,32 @@ self.addEventListener('activate', function(e){
 });
 
 self.addEventListener('fetch', function(e){
-  // Network first for API calls, cache first for assets
+  // Always network-first for the main HTML file so updates are picked up
+  if(e.request.url.endsWith('/') || e.request.url.endsWith('/index.html')){
+    e.respondWith(
+      fetch(e.request).then(function(response){
+        var clone = response.clone();
+        caches.open(CACHE_NAME).then(function(cache){cache.put(e.request,clone);});
+        return response;
+      }).catch(function(){
+        return caches.match(e.request);
+      })
+    );
+    return;
+  }
+  // Network first for Supabase
   if(e.request.url.includes('supabase.co')){
     e.respondWith(fetch(e.request).catch(function(){
-      return new Response('{}',{headers:{'Content-Type':'application/json'}});
+      return new Response('[]',{headers:{'Content-Type':'application/json'}});
     }));
     return;
   }
+  // Cache first for other assets
   e.respondWith(
     caches.match(e.request).then(function(cached){
       return cached || fetch(e.request).then(function(response){
+        var clone = response.clone();
+        caches.open(CACHE_NAME).then(function(cache){cache.put(e.request,clone);});
         return response;
       });
     })
