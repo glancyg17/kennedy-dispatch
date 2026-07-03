@@ -1,5 +1,5 @@
 // Kennedy Executive Travel — Service Worker
-const CACHE_NAME = 'ket-dispatch-v2';
+const CACHE_NAME = 'ket-dispatch-v3';
 const ASSETS = [
   '/',
   '/index.html',
