@@ -1848,6 +1848,53 @@ function installApp(){
   });
 }
 
+
+/* ── PASSWORD ── */
+var PW_CODE='258000';
+var PW_KEY='ket_auth';
+var pwEntry='';
+
+function pwKey(d){
+  if(d===''||pwEntry.length>=6)return;
+  pwEntry+=d;
+  pwUpdateDots();
+  if(pwEntry.length===6)setTimeout(pwCheck,120);
+}
+
+function pwDel(){
+  pwEntry=pwEntry.slice(0,-1);
+  pwUpdateDots();
+  document.getElementById('pw-err').textContent='';
+}
+
+function pwUpdateDots(){
+  for(var i=0;i<6;i++){
+    var dot=document.getElementById('pd'+i);
+    if(dot)dot.className='pw-dot'+(i<pwEntry.length?' filled':'');
+  }
+}
+
+function pwCheck(){
+  if(pwEntry===PW_CODE){
+    try{localStorage.setItem(PW_KEY,'1');}catch(e){}
+    var sc=document.getElementById('pw-screen');
+    if(sc)sc.style.display='none';
+  } else {
+    document.getElementById('pw-err').textContent='Incorrect code';
+    pwEntry='';
+    pwUpdateDots();
+  }
+}
+
+function pwInit(){
+  var authed=false;
+  try{authed=localStorage.getItem(PW_KEY)==='1';}catch(e){}
+  if(authed){
+    var sc=document.getElementById('pw-screen');
+    if(sc)sc.style.display='none';
+  }
+}
+
 async function init(){
   setChrome('d');
   showLoading();
@@ -1856,6 +1903,7 @@ async function init(){
   buildDash();buildPipeline();buildBookings();buildStDrvs();buildStFleet();buildStPricing();
   subscribeRealtime();
 }
+pwInit();
 init();
 
 // Register service worker for PWA install on Android
