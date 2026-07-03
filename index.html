@@ -79,7 +79,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .ts h2{color:var(--gold);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
 .sw{overflow-y:auto;max-height:240px}
 .uw{overflow-y:auto;max-height:250px}
-.tc{background:var(--blk2);border:0.5px solid #2a2222;border-radius:var(--r);padding:10px 12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-bottom:5px}
+.tc{background:var(--blk2);border:0.5px solid #2a2222;border-radius:var(--r);padding:10px 12px 10px 10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-bottom:5px;border-left:4px solid #9e1c1c}
 .tc:active{border-color:var(--red)}
 .tt{font-size:13px;font-weight:700;color:#fff}
 .tr{font-size:12px;color:#d4a84a;font-weight:600;margin-top:2px}
@@ -89,7 +89,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .te{font-size:13px;color:#8a8080;padding:6px 0 14px;font-style:italic}
 
 /* ── JOB ROWS ── */
-.jr{padding:10px 16px;border-bottom:0.5px solid var(--blt);display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:10px}
+.jr{padding:10px 16px 10px 12px;border-bottom:0.5px solid var(--blt);display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:10px;border-left:4px solid transparent}
 .jr:active{background:var(--surf2)}
 .jn{font-size:14px;font-weight:700;color:var(--txt)}
 .jro{font-size:12px;font-weight:600;color:var(--red);margin-top:2px}
@@ -574,8 +574,6 @@ function vCol(v,cat){
   if(cat==='yellow')return'#c8a000';
   if(cat==='orange')return'#e8820c';
   if(cat==='blue')return'#2d6db5';
-  // Log first time we get no cat to understand why
-  if(!vCol._logged){vCol._logged=true;console.log('vCol called with v=',v,'cat=',cat,'(no cat match)');}
   // Fall back to vehicle name heuristic
   if(!v)return'#2d6db5';
   var vl=v.toLowerCase();
@@ -699,8 +697,8 @@ function mkTC(j,cont){
   var el=document.createElement('div');el.className='tc';
   el.onclick=function(){openJob(j.id);};
   var col=vCol(j.veh,j.color_cat);
-  el.innerHTML='<div style="width:4px;background:'+col+';border-radius:2px 0 0 2px;flex-shrink:0;margin:-10px 10px -10px -12px;align-self:stretch"></div>'
-    +'<div><div class="tt">'+e(j.tm||'TBC')+'</div><div class="tr">'+e(j.from)+' → '+e(j.to)+'</div><div class="tn">'+e(j.name)+'</div></div>'
+  el.style.borderLeftColor=col;
+  el.innerHTML='<div><div class="tt">'+e(j.tm||'TBC')+'</div><div class="tr">'+e(j.from)+' → '+e(j.to)+'</div><div class="tn">'+e(j.name)+'</div></div>'
     +'<div style="text-align:right"><div class="vp">'+e(j.veh||'TBC')+'</div><div class="tdrv">'+e(j.drv||'TBC')+'</div></div>';
   var cards=cont.querySelectorAll('.tc');var ins=false;
   for(var i=0;i<cards.length;i++){if((cards[i].querySelector('.tt').textContent||'')>(j.tm||'')){cont.insertBefore(el,cards[i]);ins=true;break;}}
@@ -716,8 +714,8 @@ function mkJR(j,cont){
   if(j.drv&&j.drv!=='TBC')meta.push(j.drv);
   var col=vCol(j.veh,j.color_cat);
   var statusLabel=j.status==='new'?'New':j.status==='quoted'?'Quoted':j.status==='confirmed'?'Confirmed':j.status==='cancelled'?'Cancelled':'Done';
-  el.innerHTML='<div style="width:4px;background:'+col+';border-radius:2px 0 0 2px;flex-shrink:0;margin:-10px 10px -10px -16px;align-self:stretch"></div>'
-    +'<div style="flex:1;min-width:0"><div class="jn">'+e(j.name)+'</div><div class="jro">'+e(j.from)+' → '+e(j.to)+'</div><div class="jm">'+meta.join(' · ')+'</div></div>'
+  el.style.borderLeftColor=col;
+  el.innerHTML='<div style="flex:1;min-width:0"><div class="jn">'+e(j.name)+'</div><div class="jro">'+e(j.from)+' → '+e(j.to)+'</div><div class="jm">'+meta.join(' · ')+'</div></div>'
     +'<div style="text-align:right;flex-shrink:0"><div class="vt">'+e(j.veh||'TBC')+'</div><span class="sbdg s-'+j.status+'" style="display:block;margin-top:4px">'+statusLabel+'</span></div>';
   cont.appendChild(el);return el;
 }
