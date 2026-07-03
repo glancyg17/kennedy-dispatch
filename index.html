@@ -696,7 +696,10 @@ function goBack(){
 function mkTC(j,cont){
   var el=document.createElement('div');el.className='tc';
   el.onclick=function(){openJob(j.id);};
-  el.innerHTML='<div><div class="tt">'+e(j.tm||'TBC')+'</div><div class="tr">'+e(j.from)+' → '+e(j.to)+'</div><div class="tn">'+e(j.name)+'</div></div><div style="text-align:right"><div class="vp">'+e(j.veh||'TBC')+'</div><div class="tdrv">'+e(j.drv||'TBC')+'</div></div>';
+  var col=vCol(j.veh,j.color_cat);
+  el.innerHTML='<div style="width:4px;background:'+col+';border-radius:2px 0 0 2px;flex-shrink:0;margin:-10px 10px -10px -12px;align-self:stretch"></div>'
+    +'<div><div class="tt">'+e(j.tm||'TBC')+'</div><div class="tr">'+e(j.from)+' → '+e(j.to)+'</div><div class="tn">'+e(j.name)+'</div></div>'
+    +'<div style="text-align:right"><div class="vp">'+e(j.veh||'TBC')+'</div><div class="tdrv">'+e(j.drv||'TBC')+'</div></div>';
   var cards=cont.querySelectorAll('.tc');var ins=false;
   for(var i=0;i<cards.length;i++){if((cards[i].querySelector('.tt').textContent||'')>(j.tm||'')){cont.insertBefore(el,cards[i]);ins=true;break;}}
   if(!ins)cont.appendChild(el);return el;
@@ -1326,23 +1329,7 @@ async function saveJob(){
 var CAL_VIEW='month';
 var wkStart=null; // Date object for Monday of current week
 
-function vCol(v){
-  if(!v)return'#4a7fc1';
-  var vl=v.toLowerCase();
-  // Rolls Royce - Orange
-  if(vl.indexOf('roll')>-1||vl.indexOf('royce')>-1)return'#e8820c';
-  // Minibus - Yellow
-  if(vl.indexOf('minibus')>-1||vl.indexOf('mini bus')>-1)return'#d4a800';
-  // VIP vehicles - Red
-  if(vl.indexOf('g-wagon')>-1||vl.indexOf('gwagon')>-1||vl.indexOf('g63')>-1)return'#9e1c1c';
-  if(vl.indexOf('maybach')>-1)return'#9e1c1c';
-  if(vl.indexOf('sq7')>-1)return'#9e1c1c';
-  if(vl.indexOf('cayenne')>-1)return'#9e1c1c';
-  if(vl.indexOf('v-class')>-1)return'#9e1c1c';
-  if(vl.indexOf('c-class')>-1)return'#9e1c1c';
-  // Standard / People carrier - Blue
-  return'#2d6db5';
-}
+// vCol defined above
 
 function p2ds(y,m,d){return y+'-'+(m+1<10?'0'+(m+1):m+1)+'-'+(d<10?'0'+d:d);}
 
