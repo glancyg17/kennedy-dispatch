@@ -574,6 +574,8 @@ function vCol(v,cat){
   if(cat==='yellow')return'#c8a000';
   if(cat==='orange')return'#e8820c';
   if(cat==='blue')return'#2d6db5';
+  // Log first time we get no cat to understand why
+  if(!vCol._logged){vCol._logged=true;console.log('vCol called with v=',v,'cat=',cat,'(no cat match)');}
   // Fall back to vehicle name heuristic
   if(!v)return'#2d6db5';
   var vl=v.toLowerCase();
@@ -1812,13 +1814,6 @@ async function init(){
   showLoading();
   await dbLoadAll();
   hideLoading();
-  // Debug: log first job to check color_cat field
-  if(jobs.length){
-    var sj=jobs[0];
-    console.log('Sample job:',JSON.stringify({id:sj.id,name:sj.name,veh:sj.veh,color_cat:sj.color_cat,status:sj.status}));
-  } else {
-    console.log('No jobs loaded');
-  }
   buildDash();buildPipeline();buildBookings();buildStDrvs();buildStFleet();buildStPricing();
   subscribeRealtime();
 }
