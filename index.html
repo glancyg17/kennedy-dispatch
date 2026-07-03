@@ -606,7 +606,7 @@ var CP=CIDS.map(function(c){return'cid='+encodeURIComponent(c);}).join('&'); // 
 var _td=new Date();var TODAY=_td.getFullYear()+'-'+((_td.getMonth()+1)<10?'0':'')+(_td.getMonth()+1)+'-'+(_td.getDate()<10?'0':'')+_td.getDate();
 var MAINS=['d','p','b','c','s'];
 var SCREENS=['d','p','b','c','s','j','add'];
-var hist=[],cur='d',CUR_JOB=null,PDN='',PDP='',idX=100,retOn=false,stopN=1,calY=2026,calM=5,calSel='2026-06-26';
+var hist=[],cur='d',CUR_JOB=null,PDN='',PDP='',idX=100,retOn=false,stopN=1;var _cn=new Date();var calY=_cn.getFullYear(),calM=_cn.getMonth(),calSel=TODAY;
 
 function vCol(v,cat){
   // colour_cat from DB takes priority (set at import time from source calendar)
