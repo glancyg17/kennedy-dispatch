@@ -1742,45 +1742,55 @@ function jobToDb(j){
     color_cat:j.color_cat||null
   };
 }
+async function sbFetch(table, params){
+  var url=SUPA_URL+'/rest/v1/'+table+'?'+params;
+  var r=await fetch(url,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'}});
+  if(!r.ok)throw new Error('HTTP '+r.status+' on '+table);
+  return r.json();
+}
+
 async function dbLoadAll(){
   try{
-    var r=await supa.from('jobs').select('*').order('job_date',{ascending:true}).order('job_time',{ascending:true});
-    if(r.error)throw r.error;
-    jobs=r.data.map(dbToJob);
-  }catch(err){
-    console.error('Load jobs:',err.message||err);
-    jobs=[];
-  }
+    var data=await sbFetch('jobs','select=*&order=job_date.asc.nullslast,job_time.asc.nullslast');
+    jobs=data.map(dbToJob);
+  }catch(err){console.error('Load jobs:',err.message||err);jobs=[];}
   try{
-    var d=await supa.from('drivers').select('*').eq('active',true).order('name');
-    if(!d.error)drivers=d.data.map(function(x){return{id:(x.name||'').slice(0,2).toUpperCase(),name:x.name,phone:x.phone||''};});
+    var ddata=await sbFetch('drivers','select=*&active=eq.true&order=name.asc');
+    drivers=ddata.map(function(x){return{id:(x.name||'').slice(0,2).toUpperCase(),name:x.name,phone:x.phone||''};});
   }catch(err){console.error('Load drivers:',err.message||err);}
   try{
-    var v=await supa.from('vehicles').select('*').eq('active',true).order('name');
-    if(!v.error)FLEET=v.data.map(function(x){return{id:x.id,name:x.name,reg:x.reg||'',type:x.type||'',pax:x.pax||0,mot:x.mot_expiry||'',ins:x.ins_expiry||'',notes:x.notes||''};});
+    var vdata=await sbFetch('vehicles','select=*&active=eq.true&order=name.asc');
+    FLEET=vdata.map(function(x){return{id:x.id,name:x.name,reg:x.reg||'',type:x.type||'',pax:x.pax||0,mot:x.mot_expiry||'',ins:x.ins_expiry||'',notes:x.notes||''};});
   }catch(err){console.error('Load vehicles:',err.message||err);}
 }
 async function dbSave(j){
   var data=jobToDb(j);
   var isTemp=!j.id||j.id.startsWith('j-')||j.id.startsWith('ret-');
-  if(isTemp){
-    var r=await supa.from('jobs').insert(data).select().single();
-    if(r.error){console.error('Insert:',r.error);return null;}
-    return r.data;
-  } else {
-    var r=await supa.from('jobs').update(data).eq('id',j.id).select().single();
-    if(r.error){console.error('Update:',r.error);return null;}
-    return r.data;
-  }
+  try{
+    var url,method;
+    if(isTemp){
+      url=SUPA_URL+'/rest/v1/jobs';method='POST';
+    } else {
+      url=SUPA_URL+'/rest/v1/jobs?id=eq.'+encodeURIComponent(j.id);method='PATCH';
+    }
+    var r=await fetch(url,{
+      method:method,
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(isTemp?data:[data])
+    });
+    if(!r.ok){var t=await r.text();console.error('dbSave error:',r.status,t);return null;}
+    var result=await r.json();
+    return Array.isArray(result)?result[0]:result;
+  }catch(err){console.error('dbSave:',err.message||err);return null;}
 }
 function showLoading(){var e=document.getElementById('loading-overlay');if(e)e.style.display='flex';}
 function hideLoading(){var e=document.getElementById('loading-overlay');if(e)e.style.display='none';}
 function subscribeRealtime(){
-  // Poll every 30 seconds to pick up changes from other devices
   setInterval(function(){
     dbLoadAll().then(function(){
       refreshLists();
-    });
+      if(cur==='j'&&CUR_JOB&&jobs.find(function(x){return x.id===CUR_JOB;}))renderJob();
+    }).catch(function(){});
   },30000);
 }
 var updJTimer=null;
