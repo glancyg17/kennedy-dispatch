@@ -189,7 +189,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .qa-hint{font-size:12px;color:var(--txt3);font-weight:500;line-height:1.5;padding:2px 0 2px}
 
 /* ── CALENDAR ── */
-.cal-wrap{padding:10px 12px 16px}
+.cal-wrap{padding:0}
 .cal-viewtog{display:flex;gap:6px;padding:0 4px 10px}
 .cvt-btn{flex:1;background:var(--surf2);border:1px solid var(--blt2);border-radius:var(--r);padding:7px 4px;font-size:12px;font-weight:700;color:var(--txt2);cursor:pointer;font-family:inherit}
 .cvt-btn.on{background:var(--red);border-color:var(--red);color:#fff}
@@ -233,7 +233,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .dv-date .dv-day{font-size:11px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;display:block}
 .dv-date .dv-num{font-size:26px;font-weight:800;line-height:1.1;display:block}
 .dv-date.today .dv-num{color:var(--red)}
-.dv-scroll{overflow-y:auto;position:relative}
+.dv-scroll{overflow-y:auto;position:relative;flex:1;min-height:0}
 .dv-grid{display:flex;position:relative;padding-left:44px}
 .dv-times{position:absolute;left:0;top:0;width:44px}
 .dv-hour-lbl{position:absolute;left:0;width:38px;text-align:right;font-size:9px;font-weight:600;color:var(--txt3);transform:translateY(-6px)}
@@ -526,7 +526,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 
 <!-- CALENDAR -->
 <div id="s-c" class="scr">
-  <div class="cal-wrap" id="cal-wrap">
+  <div class="cal-wrap" id="cal-wrap" style="display:flex;flex-direction:column;height:100%;overflow:hidden;padding:10px 12px 0">
     <div class="cal-viewtog">
       <button class="cvt-btn on" id="cvt-month" onclick="setCalView('month')">Month</button>
       <button class="cvt-btn" id="cvt-week" onclick="setCalView('week')">Day</button>
@@ -534,7 +534,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
     </div>
 
     <!-- MONTH VIEW -->
-    <div id="calv-month">
+    <div id="calv-month" style="display:flex;flex-direction:column;flex:1;overflow-y:auto">
       <div class="cal-hdr">
         <button class="cal-nav" onclick="calPrev()">&#8249;</button>
         <div class="cal-month" id="cal-month"></div>
@@ -546,17 +546,17 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
     </div>
 
     <!-- DAY VIEW -->
-    <div id="calv-week" style="display:none">
-      <div class="dv-hdr">
+    <div id="calv-week" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden">
+      <div class="dv-hdr" style="flex-shrink:0;padding:10px 4px 8px">
         <button class="cal-nav" onclick="dvPrev()">&#8249;</button>
         <div class="dv-date" id="dv-date-lbl"><span class="dv-day"></span><span class="dv-num"></span></div>
         <button class="cal-nav" onclick="dvNext()">&#8250;</button>
       </div>
-      <div class="dv-scroll" id="dv-scroll"><div id="dv-body"></div></div>
+      <div class="dv-scroll" id="dv-scroll" style="flex:1;overflow-y:auto;padding:0 8px 20px"><div id="dv-body"></div></div>
     </div>
 
     <!-- LIST VIEW -->
-    <div id="calv-list" style="display:none">
+    <div id="calv-list" style="display:none;flex:1;overflow-y:auto">
       <div id="lst-body"></div>
     </div>
   </div>
@@ -1394,11 +1394,12 @@ function setCalView(v){
   CAL_VIEW=v;
   ['month','week','list'].forEach(function(n){
     document.getElementById('cvt-'+n).className='cvt-btn'+(n===v?' on':'');
-    document.getElementById('calv-'+n).style.display=(n===v)?'block':'none';
+    var el=document.getElementById('calv-'+n);
+    if(el)el.style.display=(n===v)?(n==='week'?'flex':'block'):'none';
   });
   if(v==='month')renderCal();
   if(v==='week'){
-    if(!wkStart)wkStart=mondayOf(new Date(TODAY+'T12:00:00'));
+    if(!dvDate)dvDate=new Date(TODAY+'T12:00:00');
     renderWeek();
   }
   if(v==='list')renderList();
@@ -2095,4 +2096,3 @@ if('serviceWorker' in navigator){
 </script>
 </body>
 </html>
-
