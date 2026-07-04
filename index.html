@@ -732,6 +732,8 @@ function nav(s){
   if(s==='c')setCalView(CAL_VIEW);
   hist=[];cur=s;
   var el=document.getElementById('s-'+s);if(el)el.scrollTop=0;
+  // Replace history state so back button is intercepted
+  history.replaceState({ket:s},'',location.href);
 }
 
 function push(s){
@@ -740,6 +742,8 @@ function push(s){
   setChrome(s);
   cur=s;
   var el=document.getElementById('s-'+s);if(el)el.scrollTop=0;
+  // Push history state so back button returns here
+  history.pushState({ket:cur},'',location.href);
 }
 
 function goBack(){
@@ -748,6 +752,18 @@ function goBack(){
   setChrome(p);
   cur=p;
 }
+
+// Intercept phone back button
+window.addEventListener('popstate',function(e){
+  if(hist.length>0){
+    goBack();
+    // Re-push a state so there's always something to pop
+    history.pushState({ket:cur},'',location.href);
+  } else {
+    // At root — push a dummy state so next back press doesn't close app
+    history.pushState({ket:cur},'',location.href);
+  }
+});
 
 /* ── JOB CARDS ── */
 function mkTC(j,cont){
@@ -2052,6 +2068,8 @@ function pwInit(){
 
 async function init(){
   setChrome('d');
+  // Ensure there's always a history state to intercept
+  history.replaceState({ket:'d'},'',location.href);
   showLoading();
   await dbLoadAll();
   hideLoading();
