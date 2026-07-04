@@ -626,18 +626,27 @@ var SCREENS=['d','p','b','c','s','j','add'];
 var hist=[],cur='d',CUR_JOB=null,PDN='',PDP='',idX=100,retOn=false,stopN=1;var _cn=new Date();var calY=_cn.getFullYear(),calM=_cn.getMonth(),calSel=TODAY;var calRendered=false;
 
 function vCol(v,cat){
-  // colour_cat from DB takes priority (set at import time from source calendar)
+  // cat from DB is authoritative
   if(cat==='red')return'#9e1c1c';
   if(cat==='yellow')return'#c8a000';
   if(cat==='orange')return'#e8820c';
   if(cat==='blue')return'#2d6db5';
-  // Fall back to vehicle name heuristic
+  // Derive from vehicle name if no cat
   if(!v)return'#2d6db5';
   var vl=v.toLowerCase();
   if(vl.indexOf('roll')>-1||vl.indexOf('royce')>-1)return'#e8820c';
   if(vl.indexOf('minibus')>-1||vl.indexOf('mini bus')>-1)return'#c8a000';
   if(vl.indexOf('g-wagon')>-1||vl.indexOf('maybach')>-1||vl.indexOf('sq7')>-1||vl.indexOf('cayenne')>-1||vl.indexOf('v-class')>-1||vl.indexOf('c-class')>-1)return'#9e1c1c';
   return'#2d6db5';
+}
+
+// Also set color_cat when vehicle is selected on a new job
+function deriveColorCat(veh){
+  var vl=(veh||'').toLowerCase();
+  if(vl.indexOf('roll')>-1||vl.indexOf('royce')>-1)return'orange';
+  if(vl.indexOf('minibus')>-1||vl.indexOf('mini bus')>-1)return'yellow';
+  if(vl.indexOf('g-wagon')>-1||vl.indexOf('maybach')>-1||vl.indexOf('sq7')>-1||vl.indexOf('cayenne')>-1||vl.indexOf('v-class')>-1||vl.indexOf('c-class')>-1)return'red';
+  return'blue';
 }
 
 var drivers=[];
@@ -1267,6 +1276,8 @@ async function confirmCancel(btn){
 function updJ(field,val){
   var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j)return;
   j[field]=val;
+  // Auto-derive color_cat from vehicle if not manually set
+  if(field==='veh')j.color_cat=deriveColorCat(val);
   clearTimeout(updJTimer);
   updJTimer=setTimeout(function(){dbSave(j);},800);
 }
@@ -1387,7 +1398,8 @@ async function saveJob(){
     pu:pu,do:dst,ds:ds,tm:tm,date:ds?fd(ds):'',
     from:ab(pu||'?'),to:ab(dst||'?'),
     veh:'',drv:'TBC',dp:'',stops:[],fl:'',rd:'',rt:'',rp:'',pr:'—',
-    notes:document.getElementById('fnt').value.trim(),status:'new'
+    notes:document.getElementById('fnt').value.trim(),status:'new',
+    color_cat:'blue'
   };
   var saved=await dbSave(j);if(saved)j.id=saved.id;
   jobs.push(j);
