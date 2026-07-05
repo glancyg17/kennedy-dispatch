@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <!-- KET Dispatch v2.1 -->
 <html lang="en">
 <head>
@@ -219,6 +218,8 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .cvt-btn.on{background:var(--red);border-color:var(--red);color:#fff}
 .cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 4px}
 .cal-month{font-size:15px;font-weight:700;color:var(--txt)}
+.cal-drv-chip{display:flex;align-items:center;justify-content:space-between;background:var(--surf2);border:0.5px solid var(--blt2);border-radius:var(--r);padding:8px 11px;margin:8px 0;font-size:12px;font-weight:700;color:var(--txt2)}
+.cal-drv-chip button{background:none;border:none;color:var(--red);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;padding:0}
 .cal-nav{background:transparent;border:1px solid var(--blt2);border-radius:var(--r);width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--txt2);display:flex;align-items:center;justify-content:center;font-family:inherit}
 .cal-today-btn{font-size:11px;font-weight:700;color:var(--red);background:none;border:none;cursor:pointer;font-family:inherit}
 
@@ -571,6 +572,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
       <button class="cvt-btn" id="cvt-week" onclick="setCalView('week')">Day</button>
       <button class="cvt-btn" id="cvt-list" onclick="setCalView('list')">List</button>
     </div>
+    <div id="cal-drv-filter" style="display:none"></div>
 
     <!-- MONTH VIEW -->
     <div id="calv-month" style="display:flex;flex-direction:column;flex:1;overflow-y:auto">
@@ -799,14 +801,14 @@ function setChrome(s){
   document.getElementById('tb-title').textContent=titles[s]||'Kennedy Executive';
   document.getElementById('tb-sub').textContent=(s==='d')?(function(){var d=new Date(TODAY);var dy=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];var mn=['January','February','March','April','May','June','July','August','September','October','November','December'];return dy[d.getDay()]+', '+d.getDate()+' '+mn[d.getMonth()]+' 2026';})():'';
   document.getElementById('tb-add').style.display=(s==='d'||s==='p'||s==='b')?'flex':'none';
-  document.getElementById('tb-back').style.display=(s==='j'||s==='add')?'inline':'none';
+  document.getElementById('tb-back').style.display=(s==='j'||s==='add'||(s==='c'&&hist.length>0))?'inline':'none';
   MAINS.forEach(function(n){var el=document.getElementById('nb-'+n);if(el)el.className='nb'+(n===s?' on':'');});
 }
 
 function nav(s){
   SCREENS.forEach(function(n){var el=document.getElementById('s-'+n);if(el)el.className='scr'+(n===s?' on':'');});
   setChrome(s);
-  if(s==='c')setCalView(CAL_VIEW);
+  if(s==='c'){CAL_DRV_FILTER=null;setCalView(CAL_VIEW);}
   hist=[];cur=s;
   var el=document.getElementById('s-'+s);if(el)el.scrollTop=0;
   // Replace history state so back button is intercepted
@@ -1654,14 +1656,38 @@ async function saveJob(){
 
 /* ── CALENDAR ── */
 var CAL_VIEW='month';
+var CAL_DRV_FILTER=null;
 // calY/calM initialised to current month dynamically
 
 // vCol defined above
 
 function p2ds(y,m,d){return y+'-'+(m+1<10?'0'+(m+1):m+1)+'-'+(d<10?'0'+d:d);}
 
+function drvFilterOk(j){return !CAL_DRV_FILTER||j.drv===CAL_DRV_FILTER;}
+
+function renderCalDrvChip(){
+  var el=document.getElementById('cal-drv-filter');if(!el)return;
+  if(!CAL_DRV_FILTER){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='block';
+  el.innerHTML='<div class="cal-drv-chip"><span>Showing: '+e(CAL_DRV_FILTER)+'</span><button onclick="clearDrvFilter()">Clear \u2715</button></div>';
+}
+
+function viewDriverCalendar(name){
+  CAL_DRV_FILTER=name;
+  push('c');
+  setCalView('list');
+  renderCalDrvChip();
+}
+
+function clearDrvFilter(){
+  CAL_DRV_FILTER=null;
+  renderCalDrvChip();
+  setCalView(CAL_VIEW);
+}
+
 function setCalView(v){
   CAL_VIEW=v;
+  renderCalDrvChip();
   ['month','week','list'].forEach(function(n){
     document.getElementById('cvt-'+n).className='cvt-btn'+(n===v?' on':'');
     var el=document.getElementById('calv-'+n);
@@ -1690,7 +1716,7 @@ function renderCal(){
   var rem=cells.length%7;if(rem>0)for(var j=1;j<=7-rem;j++)cells.push({d:j,m:calM+1,y:calM===11?calY+1:calY,other:true});
   cells.forEach(function(c,idx){
     var ds=p2ds(c.y,c.m,c.d);
-    var dayJ=jobs.filter(function(x){return x.ds===ds&&(x.status==='confirmed'||x.status==='done');}).sort(function(a,b){return(a.tm||'')>(b.tm||'')?1:-1;});
+    var dayJ=jobs.filter(function(x){return x.ds===ds&&(x.status==='confirmed'||x.status==='done')&&drvFilterOk(x);}).sort(function(a,b){return(a.tm||'')>(b.tm||'')?1:-1;});
     var isT=ds===TODAY;
     var isWknd=(idx%7===5||idx%7===6);
     var el=document.createElement('div');
@@ -1721,7 +1747,7 @@ function renderCalDay(){
   var dj=document.getElementById('cal-djobs');
   var p=calSel.split('-');var MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
   var label=parseInt(p[2])+' '+MN[parseInt(p[1])-1]+' '+p[0];
-  var dayJ=jobs.filter(function(x){return x.ds===calSel&&(x.status==='confirmed'||x.status==='done');}).sort(function(a,b){return(a.tm||'')>(b.tm||'')?1:-1;});
+  var dayJ=jobs.filter(function(x){return x.ds===calSel&&(x.status==='confirmed'||x.status==='done')&&drvFilterOk(x);}).sort(function(a,b){return(a.tm||'')>(b.tm||'')?1:-1;});
   var h='<h4>'+label+'</h4>';
   if(dayJ.length){
     dayJ.forEach(function(b){h+=buildCJ(b);});
@@ -1775,7 +1801,7 @@ function renderDayView(){
 
   // Get jobs for this day
   var dayJ=jobs.filter(function(x){
-    return x.ds===ds&&(x.status==='confirmed'||x.status==='done');
+    return x.ds===ds&&(x.status==='confirmed'||x.status==='done')&&drvFilterOk(x);
   }).sort(function(a,b){return(a.tm||'00:00')>(b.tm||'00:00')?1:-1;});
 
   var body=document.getElementById('dv-body');
@@ -1881,9 +1907,9 @@ function renderDayView(){
 
 /* ── LIST ── */
 function renderList(){
-  var conf=jobs.filter(function(x){return x.status==='confirmed';}).sort(function(a,b){return a.ds>b.ds?1:a.ds<b.ds?-1:(a.tm||'')>(b.tm||'')?1:-1;});
+  var conf=jobs.filter(function(x){return x.status==='confirmed'&&drvFilterOk(x);}).sort(function(a,b){return a.ds>b.ds?1:a.ds<b.ds?-1:(a.tm||'')>(b.tm||'')?1:-1;});
   var body=document.getElementById('lst-body');
-  if(!conf.length){body.innerHTML='<div class="lst-empty">No confirmed bookings yet</div>';return;}
+  if(!conf.length){body.innerHTML='<div class="lst-empty">No confirmed bookings'+(CAL_DRV_FILTER?' for '+e(CAL_DRV_FILTER):' yet')+'</div>';return;}
   var groups={};var order=[];
   conf.forEach(function(j){
     if(!groups[j.ds]){groups[j.ds]=[];order.push(j.ds);}
@@ -1933,10 +1959,11 @@ function buildStDrvs(){
     h+='<div class="drv-av" style="background:'+(isGeorge?'var(--red)':'var(--surf2)')+';color:'+(isGeorge?'#fff':'var(--txt2)')+';border:'+(isGeorge?'none':'0.5px solid var(--blt2)')+'">'+e(initials)+'</div>';
     h+='<div class="drv-info"><div class="drv-name">'+e(d.name)+(isGeorge?' <span style="font-size:10px;background:var(--red);color:#fff;padding:1px 7px;border-radius:99px;margin-left:4px">Owner</span>':'')+'</div>';
     h+='<div class="drv-phone">'+e(d.phone||'No number set')+'</div></div>';
-    // WhatsApp button
+    // WhatsApp + Calendar buttons
     if(d.phone){
       h+='<a href="https://wa.me/'+waNum+'" style="background:#1d9e75;color:#fff;border:none;border-radius:var(--r);padding:6px 10px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:4px" onclick="event.stopPropagation()">&#128172; WA</a>';
     }
+    h+='<button data-name="'+e(d.name)+'" onclick="event.stopPropagation();viewDriverCalendar(this.dataset.name)" style="background:var(--surf2);color:var(--txt2);border:0.5px solid var(--blt2);border-radius:var(--r);padding:6px 10px;font-size:12px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:4px;cursor:pointer;font-family:inherit;margin-left:5px">&#128197; Cal</button>';
     h+='<span style="font-size:18px;color:var(--txt3);margin-left:4px">&#8942;</span></div>';
     // Edit body
     h+='<div class="drv-edit-body" id="'+uid+'">';
