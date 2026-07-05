@@ -2037,11 +2037,11 @@ function buildStFleet(){
       var uid='veh-'+(vehIdx++);
       var hasId=!!v.id;
       var cardCls='veh-card'+(ms==='soon'?' mot-warn':ms==='expired'?' mot-expired':'');
-      var badgeCls='mot-badge '+(ms==='ok'?'mot-ok':ms==='soon'?'mot-warn':ms==='expired'?'mot-expired':'mot-unset');
-      var badgeTxt=!v.mot?'MOT not set':ms==='ok'?'MOT OK':ms==='soon'?'MOT due soon':'MOT EXPIRED';
+      var badgeCls='mot-badge '+(ms==='ok'?'mot-ok':ms==='upcoming'?'mot-ok':ms==='soon'?'mot-warn':ms==='expired'?'mot-expired':'mot-unset');
+      var badgeTxt=!v.mot?'MOT not set':ms==='ok'?'MOT OK':ms==='upcoming'?'MOT OK':ms==='soon'?'MOT due soon':ms==='expired'?'MOT EXPIRED':'MOT not set';
       h+='<div class="'+cardCls+'">';
       h+='<div class="veh-card-hdr" data-uid="'+uid+'" onclick="stToggleVehEl(this)">';
-      h+='<div><div class="veh-card-name">'+e(v.name)+'</div><div class="veh-card-sub">'+e(v.pax)+' pax'+(v.reg?' · '+e(v.reg):'')+'</div><div class="veh-card-sub" style="opacity:.6">id: '+e(v.id||'MISSING')+' · mot raw: '+e(v.mot||'—')+' · days: '+daysUntil(v.mot)+'</div></div>';
+      h+='<div><div class="veh-card-name">'+e(v.name)+'</div><div class="veh-card-sub">'+e(v.pax)+' pax'+(v.reg?' · '+e(v.reg):'')+'</div></div>';
       h+='<span class="'+badgeCls+'">'+badgeTxt+'</span></div>';
       h+='<div class="veh-edit-body" id="'+uid+'">';
       if(!hasId)h+='<div style="background:var(--warnbg);color:var(--warntxt);border-radius:var(--r);padding:8px 10px;font-size:11px;font-weight:600;margin-bottom:8px">⚠ This vehicle has no database ID — changes here can\'t be saved. Remove it and re-add it using "+ Add vehicle" below.</div>';
