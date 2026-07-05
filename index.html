@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <!-- KET Dispatch v2.1 -->
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -514,10 +513,6 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 <div id="s-d" class="scr on">
   <div class="dstat-grid" id="dstats"></div>
   <div class="dattn" id="dattn" style="display:none"></div>
-  <div class="ts"><h2>Today</h2><div class="sw" id="tlist"></div></div>
-  <div class="slbl">Upcoming <span class="slbl-ct" id="uct"></span></div>
-  <div class="uw" id="ulist"></div>
-  <button class="dash-more" id="dmore" style="display:none" onclick="nav('b')">View all bookings →</button>
 </div>
 
 <!-- PIPELINE -->
@@ -638,7 +633,6 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 </div><!-- /screens -->
 </div><!-- /app -->
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 
 // PWA manifest: see manifest.json in repo root
@@ -659,7 +653,6 @@ window.addEventListener('appinstalled', function() {
 
 var SUPA_URL='https://mpdrshyxefrptitbqnbi.supabase.co';
 var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wZHJzaHl4ZWZycHRpdGJxbmJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NzcyNzIsImV4cCI6MjA5ODU1MzI3Mn0.5bkceScowY-26qnG0FkMXaqTZstLQe3GvbO8eooesFs';
-var supa=supabase.createClient(SUPA_URL,SUPA_KEY);
 var CIDS=['d8cf79655efa1c81084b778e0b3ec40676040f4b9581b7b1699fad9706da3aae@group.calendar.google.com','b7d1e7a6f536ed6f9fab7eb690e57649f595354e077db669608de69d01f884a1@group.calendar.google.com','e8b1f814c6a6e9154eebcf7c762fb7e0245f9b4e1d81f2b45cc846092809200e@group.calendar.google.com','b887705bfc47f5f23f27b1af75236518729a22d8f5d6f436285f762ca69a287f@group.calendar.google.com']; // George's Google Calendars
 var CP=CIDS.map(function(c){return'cid='+encodeURIComponent(c);}).join('&'); // Will populate once George creates calendars
 
@@ -883,17 +876,8 @@ function motAlertTotal(){
   return FLEET.filter(function(v){var s=expiryStatus(v.mot);return s==='expired'||s==='soon';}).length;
 }
 function buildDash(){
-  var tl=document.getElementById('tlist');tl.innerHTML='';
-  var ul=document.getElementById('ulist');ul.innerHTML='';
   var conf=jobs.filter(function(j){return j.status==='confirmed';});
-  var todayJ=conf.filter(function(j){return j.ds===TODAY;}).sort(function(a,b){return(a.tm||'')>(b.tm||'')?1:-1;});
-  var upJAll=conf.filter(function(j){return j.ds>TODAY;}).sort(function(a,b){return a.ds>b.ds?1:a.ds<b.ds?-1:(a.tm||'')>(b.tm||'')?1:-1;});
-  var upJ=upJAll.slice(0,5);
-  if(todayJ.length){todayJ.forEach(function(j){mkTC(j,tl);});}else{tl.innerHTML='<div class="te">No journeys today</div>';}
-  document.getElementById('uct').textContent=upJAll.length+' job'+(upJAll.length!==1?'s':'');
-  upJ.forEach(function(j){mkJR(j,ul);});
-  var more=document.getElementById('dmore');
-  if(more)more.style.display=upJAll.length>5?'block':'none';
+  var todayJ=conf.filter(function(j){return j.ds===TODAY;});
 
   // Stats tiles
   var wk=weekBounds();
@@ -904,7 +888,7 @@ function buildDash(){
   var se=document.getElementById('dstats');
   if(se){
     var h='';
-    h+='<div class="dstat" onclick="nav(\'d\')"><div class="dstat-val">'+todayJ.length+'</div><div class="dstat-lbl">Today</div></div>';
+    h+='<div class="dstat" onclick="nav(\'c\')"><div class="dstat-val">'+todayJ.length+'</div><div class="dstat-lbl">Today</div></div>';
     h+='<div class="dstat gold" onclick="nav(\'b\')"><div class="dstat-val">£'+wkRev.toLocaleString()+'</div><div class="dstat-lbl">This week</div></div>';
     h+='<div class="dstat" onclick="nav(\'p\')"><div class="dstat-val">'+pipelineCt+'</div><div class="dstat-lbl">Pipeline</div></div>';
     h+='<div class="dstat'+(motCt?' alert':'')+'" onclick="nav(\'s\')"><div class="dstat-val">'+motCt+'</div><div class="dstat-lbl">MOT alert'+(motCt!==1?'s':'')+'</div></div>';
@@ -1968,9 +1952,11 @@ function saveDrv(btn){
   var newName=document.getElementById(uid+'-name').value.trim();
   var newPhone=document.getElementById(uid+'-phone').value.trim();
   if(!newName)return;
-  supa.from('drivers').update({name:newName,phone:newPhone}).eq('name',oldName).then(function(r){
-    if(r.error)console.error('Save driver:',r.error);
-  });
+  fetch(SUPA_URL+'/rest/v1/drivers?name=eq.'+encodeURIComponent(oldName),{
+    method:'PATCH',
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({name:newName,phone:newPhone})
+  }).catch(function(err){console.error('Save driver:',err);});
   d.name=newName;d.phone=newPhone;
   buildStDrvs();
 }
@@ -1980,7 +1966,11 @@ function delDrv(btn){
   var d=drivers.find(function(x){return x.name===name;});
   if(!d)return;
   if(!confirm('Remove '+d.name+' from drivers?'))return;
-  supa.from('drivers').update({active:false}).eq('name',d.name).then(function(){});
+  fetch(SUPA_URL+'/rest/v1/drivers?name=eq.'+encodeURIComponent(name),{
+    method:'PATCH',
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({active:false})
+  }).catch(function(err){console.error('Delete driver:',err);});
   drivers=drivers.filter(function(x){return x.name!==name;});
   buildStDrvs();
 }
@@ -1989,9 +1979,11 @@ function addDrvPrompt(){
   var name=prompt('Driver name:');if(!name)return;
   var phone=prompt('Phone number:');
   var newDrv={id:name.slice(0,2).toUpperCase(),name:name,phone:phone||''};
-  supa.from('drivers').insert({name:name,phone:phone||'',active:true}).then(function(r){
-    if(r.error)console.error('Add driver:',r.error);
-  });
+  fetch(SUPA_URL+'/rest/v1/drivers',{
+    method:'POST',
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+    body:JSON.stringify({name:name,phone:phone||'',active:true})
+  }).catch(function(err){console.error('Add driver:',err);});
   drivers.push(newDrv);
   buildStDrvs();
 }
@@ -2067,9 +2059,12 @@ function saveVeh(btn){
   v.reg=document.getElementById(uid+'-reg').value.trim().toUpperCase();
   v.pax=parseInt(document.getElementById(uid+'-pax').value)||v.pax;
   v.mot=document.getElementById(uid+'-mot').value;
-  supa.from('vehicles').update({name:v.name,reg:v.reg,pax:v.pax,mot_expiry:v.mot||null}).eq('id',vid).then(function(r){
-    if(r.error)console.error('Save vehicle:',r.error);
-  });
+  fetch(SUPA_URL+'/rest/v1/vehicles?id=eq.'+vid,{
+    method:'PATCH',
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({name:v.name,reg:v.reg,pax:v.pax,mot_expiry:v.mot||null})
+  }).then(function(r){if(!r.ok)console.error('Save vehicle: HTTP '+r.status);})
+    .catch(function(err){console.error('Save vehicle:',err);});
   buildStFleet();
 }
 
@@ -2077,7 +2072,11 @@ function delVeh(btn){
   var vid=btn.dataset.vid;
   var v=FLEET.find(function(x){return x.id===vid;});if(!v)return;
   if(!confirm('Remove '+v.name+'?'))return;
-  supa.from('vehicles').update({active:false}).eq('id',vid).then(function(){});
+  fetch(SUPA_URL+'/rest/v1/vehicles?id=eq.'+vid,{
+    method:'PATCH',
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({active:false})
+  }).catch(function(err){console.error('Delete vehicle:',err);});
   FLEET=FLEET.filter(function(x){return x.id!==vid;});
   buildStFleet();
 }
@@ -2095,9 +2094,17 @@ async function saveNewVeh(){
   var mot=document.getElementById('nv-mot').value;
   var reg=document.getElementById('nv-reg').value.trim().toUpperCase();
   if(!name){alert('Vehicle name required');return;}
-  var r=await supa.from('vehicles').insert({name:name,type:type,pax:pax,mot_expiry:mot||null,reg:reg||null,active:true}).select().single();
-  if(r.error){console.error('Add vehicle:',r.error);return;}
-  FLEET.push({id:r.data.id,name:name,reg:reg,type:type,pax:pax,mot:mot,ins:'',notes:''});
+  try{
+    var res=await fetch(SUPA_URL+'/rest/v1/vehicles',{
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'return=representation'},
+      body:JSON.stringify({name:name,type:type,pax:pax,mot_expiry:mot||null,reg:reg||null,active:true})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    var data=await res.json();
+    var newId=data&&data[0]&&data[0].id;
+    FLEET.push({id:newId,name:name,reg:reg,type:type,pax:pax,mot:mot,ins:'',notes:''});
+  }catch(err){console.error('Add vehicle:',err);return;}
   document.getElementById('add-veh-form').style.display='none';
   buildStFleet();
 }
