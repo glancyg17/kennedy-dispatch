@@ -1694,4 +1694,621 @@ function renderList(){
   order.forEach(function(ds){
     var p=ds.split('-');
     var lbl=(ds===TODAY?'Today \u2014 ':'')+parseInt(p[2])+' '+MN[parseInt(p[1])-1]+' '+p[0];
-    h+='<div class="lst-group"><div class="lst-group-hdr">'+lbl+'</div>'
+    h+='<div class="lst-group"><div class="lst-group-hdr">'+lbl+'</div>';
+    groups[ds].forEach(function(b){h+=buildCJ(b);});
+    h+='</div>';
+  });
+  body.innerHTML=h;
+}
+
+/* ── SETTINGS DRIVERS ── */
+
+
+function stToggle(id){
+  var body=document.getElementById(id);
+  var chv=document.getElementById('chv-'+id);
+  if(!body)return;
+  var open=body.classList.toggle('open');
+  if(chv)chv.classList.toggle('open',open);
+}
+
+function buildStDrvs(){
+  var el=document.getElementById('st-drivers');if(!el)return;
+  var sorted=drivers.slice().sort(function(a,b){
+    if(a.name==='George')return -1;if(b.name==='George')return 1;
+    return a.name>b.name?1:-1;
+  });
+  var h='<div class="st-section-hdr" onclick="stToggle(\"st-drv-body\")">';
+  h+='<div><div class="st-section-title">Drivers</div><div class="st-section-meta">'+sorted.length+' active</div></div>';
+  h+='<span class="st-chevron open" id="chv-st-drv-body">&#9654;</span></div>';
+  h+='<div class="st-body open" id="st-drv-body">';
+  sorted.forEach(function(d,idx){
+    var initials=d.name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    var isGeorge=d.name==='George';
+    var uid='drv-'+idx;
+    var waNum=(d.phone||'').replace(/[\s+()-]/g,'');
+    h+='<div class="drv-card">';
+    // Card header — tap to expand
+    h+='<div class="drv-card-hdr" data-uid="'+uid+'" onclick="stToggleDrvEl(this)">';
+    h+='<div class="drv-av" style="background:'+(isGeorge?'var(--red)':'var(--surf2)')+';color:'+(isGeorge?'#fff':'var(--txt2)')+';border:'+(isGeorge?'none':'0.5px solid var(--blt2)')+'">'+e(initials)+'</div>';
+    h+='<div class="drv-info"><div class="drv-name">'+e(d.name)+(isGeorge?' <span style="font-size:10px;background:var(--red);color:#fff;padding:1px 7px;border-radius:99px;margin-left:4px">Owner</span>':'')+'</div>';
+    h+='<div class="drv-phone">'+e(d.phone||'No number set')+'</div></div>';
+    // WhatsApp button
+    if(d.phone){
+      h+='<a href="https://wa.me/'+waNum+'" style="background:#1d9e75;color:#fff;border:none;border-radius:var(--r);padding:6px 10px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:4px" onclick="event.stopPropagation()">&#128172; WA</a>';
+    }
+    h+='<span style="font-size:18px;color:var(--txt3);margin-left:4px">&#8942;</span></div>';
+    // Edit body
+    h+='<div class="drv-edit-body" id="'+uid+'">';
+    h+='<div style="margin-bottom:8px"><label class="fl">Name</label><input class="fi" type="text" value="'+e(d.name)+'" id="'+uid+'-name" placeholder="Driver name"></div>';
+    h+='<div style="margin-bottom:10px"><label class="fl">Phone</label><input class="fi" type="tel" value="'+e(d.phone||'')+'" id="'+uid+'-phone" placeholder="+44..."></div>';
+    h+='<div style="display:flex;gap:8px;align-items:center">';
+    h+='<button class="drv-save-btn" data-name="'+e(d.name)+'" data-uid="'+uid+'" onclick="saveDrv(this)">Save changes</button>';
+    if(!isGeorge)h+='<button class="drv-del-btn" data-name="'+e(d.name)+'" onclick="delDrv(this)">Remove driver</button>';
+    h+='</div></div></div>';
+  });
+  h+='<button class="al" style="margin-top:10px" onclick="addDrvPrompt()">+ Add driver</button>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+
+function stToggleDrvEl(el){stToggleDrv(el.dataset.uid);}
+function stToggleVehEl(el){stToggleVeh(el.dataset.uid);}
+function stToggleDrv(uid){
+  var el=document.getElementById(uid);if(!el)return;
+  el.classList.toggle('open');
+}
+
+function saveDrv(btn){
+  var oldName=btn.dataset.name;
+  var uid=btn.dataset.uid;
+  var d=drivers.find(function(x){return x.name===oldName;});
+  if(!d)return;
+  var newName=document.getElementById(uid+'-name').value.trim();
+  var newPhone=document.getElementById(uid+'-phone').value.trim();
+  if(!newName)return;
+  supa.from('drivers').update({name:newName,phone:newPhone}).eq('name',oldName).then(function(r){
+    if(r.error)console.error('Save driver:',r.error);
+  });
+  d.name=newName;d.phone=newPhone;
+  buildStDrvs();
+}
+
+function delDrv(btn){
+  var name=btn.dataset.name;
+  var d=drivers.find(function(x){return x.name===name;});
+  if(!d)return;
+  if(!confirm('Remove '+d.name+' from drivers?'))return;
+  supa.from('drivers').update({active:false}).eq('name',d.name).then(function(){});
+  drivers=drivers.filter(function(x){return x.name!==name;});
+  buildStDrvs();
+}
+
+function addDrvPrompt(){
+  var name=prompt('Driver name:');if(!name)return;
+  var phone=prompt('Phone number:');
+  var newDrv={id:name.slice(0,2).toUpperCase(),name:name,phone:phone||''};
+  supa.from('drivers').insert({name:name,phone:phone||'',active:true}).then(function(r){
+    if(r.error)console.error('Add driver:',r.error);
+  });
+  drivers.push(newDrv);
+  buildStDrvs();
+}
+
+function buildStFleet(){
+  var el=document.getElementById('st-fleet');if(!el)return;
+  var cats=['VIP','Executive','Standard','Minibus'];
+  // MOT alerts
+  var expired=FLEET.filter(function(v){return expiryStatus(v.mot)==='expired';});
+  var warnSoon=FLEET.filter(function(v){return expiryStatus(v.mot)==='soon';});
+  var h='<div class="st-section-hdr" onclick="stToggle(\"st-fleet-body\")">';
+  var alertCount=expired.length+warnSoon.length;
+  h+='<div><div class="st-section-title">Fleet</div><div class="st-section-meta">'+FLEET.length+' vehicles'+(alertCount?' · <span style="color:#b02020">'+alertCount+' MOT alert'+(alertCount>1?'s':'')+'</span>':'')+'</div></div>';
+  h+='<span class="st-chevron open" id="chv-st-fleet-body">&#9654;</span></div>';
+
+  h+='<div class="st-body open" id="st-fleet-body">';
+
+  // Alert banners
+  if(expired.length){
+    h+='<div class="mot-expired-banner"><h4>&#9888; MOT Expired</h4>';
+    expired.forEach(function(v){h+='<div style="font-size:12px;color:#b02020;font-weight:600">'+e(v.name)+' — '+expiryLabel(v.mot)+'</div>';});
+    h+='</div>';
+  }
+  if(warnSoon.length){
+    h+='<div class="mot-alert-banner"><h4>&#9888; MOT Due Within 30 Days</h4>';
+    warnSoon.forEach(function(v){h+='<div class="mot-alert-row">'+e(v.name)+' — '+expiryLabel(v.mot)+'</div>';});
+    h+='</div>';
+  }
+  cats.forEach(function(cat){
+    var catVehs=FLEET.filter(function(v){return v.type===cat;});
+    if(!catVehs.length)return;
+    h+='<div class="veh-cat"><div class="veh-cat-lbl">'+cat+'</div>';
+    catVehs.forEach(function(v,ci){
+      var ms=expiryStatus(v.mot);
+      var uid='veh-'+v.id;
+      var cardCls='veh-card'+(ms==='soon'?' mot-warn':ms==='expired'?' mot-expired':'');
+      var badgeCls='mot-badge '+(ms==='ok'?'mot-ok':ms==='soon'?'mot-warn':ms==='expired'?'mot-expired':'mot-unset');
+      var badgeTxt=!v.mot?'MOT not set':ms==='ok'?'MOT OK':ms==='soon'?'MOT due soon':'MOT EXPIRED';
+      h+='<div class="'+cardCls+'">';
+      h+='<div class="veh-card-hdr" data-uid="'+uid+'" onclick="stToggleVehEl(this)">';
+      h+='<div><div class="veh-card-name">'+e(v.name)+'</div><div class="veh-card-sub">'+e(v.pax)+' pax'+(v.reg?' · '+e(v.reg):'')+'</div></div>';
+      h+='<span class="'+badgeCls+'">'+badgeTxt+'</span></div>';
+      h+='<div class="veh-edit-body" id="'+uid+'">';
+      h+='<div class="tc2" style="margin-bottom:8px"><div><label class="fl">Name</label><input class="fi" type="text" value="'+e(v.name)+'" id="'+uid+'-name"></div>';
+      h+='<div><label class="fl">Reg plate</label><input class="fi" type="text" value="'+e(v.reg)+'" id="'+uid+'-reg" placeholder="e.g. SN24 ABC" style="text-transform:uppercase"></div></div>';
+      h+='<div class="tc2" style="margin-bottom:8px"><div><label class="fl">Passengers</label><input class="fi" type="number" value="'+e(v.pax)+'" id="'+uid+'-pax" min="1" max="40"></div>';
+      h+='<div><label class="fl">MOT expiry</label><input class="fi" type="date" value="'+e(v.mot)+'" id="'+uid+'-mot"></div></div>';
+      h+='<div style="display:flex;gap:8px;align-items:center"><button class="drv-save-btn" data-vid="'+e(v.id)+'" data-uid="'+uid+'" onclick="saveVeh(this)">Save</button>';
+      h+='<button class="drv-del-btn" data-vid="'+e(v.id)+'" onclick="delVeh(this)">Remove vehicle</button></div>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+  });
+  h+='<button class="al" style="margin-top:10px" onclick="addVehForm()">+ Add vehicle</button>';
+  h+='<div id="add-veh-form" style="display:none;margin-top:10px;background:var(--surf2);border-radius:var(--r);padding:12px;border:0.5px solid var(--blt2)">';
+  h+='<div class="tc2" style="margin-bottom:8px"><div><label class="fl">Vehicle name</label><input class="fi" type="text" id="nv-name" placeholder="e.g. BMW 5 Series"></div>';
+  h+='<div><label class="fl">Class</label><select class="fs" id="nv-type"><option>VIP</option><option>Executive</option><option>Standard</option><option>Minibus</option></select></div></div>';
+  h+='<div class="tc2" style="margin-bottom:8px"><div><label class="fl">Passengers</label><input class="fi" type="number" id="nv-pax" placeholder="4" min="1" max="40"></div>';
+  h+='<div><label class="fl">MOT expiry</label><input class="fi" type="date" id="nv-mot"></div></div>';
+  h+='<div><label class="fl">Reg plate</label><input class="fi" type="text" id="nv-reg" placeholder="e.g. SN24 ABC" style="text-transform:uppercase;margin-bottom:8px"></div>';
+  h+='<button class="drv-save-btn" onclick="saveNewVeh()">Add vehicle</button> <button class="drv-del-btn" onclick="hideAddVehForm()">Cancel</button>';
+  h+='</div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function stToggleVeh(uid){var el=document.getElementById(uid);if(el)el.classList.toggle('open');}
+
+function saveVeh(btn){
+  var vid=btn.dataset.vid;var uid=btn.dataset.uid;
+  var v=FLEET.find(function(x){return x.id===vid;});if(!v)return;
+  v.name=document.getElementById(uid+'-name').value.trim()||v.name;
+  v.reg=document.getElementById(uid+'-reg').value.trim().toUpperCase();
+  v.pax=parseInt(document.getElementById(uid+'-pax').value)||v.pax;
+  v.mot=document.getElementById(uid+'-mot').value;
+  supa.from('vehicles').update({name:v.name,reg:v.reg,pax:v.pax,mot_expiry:v.mot||null}).eq('id',vid).then(function(r){
+    if(r.error)console.error('Save vehicle:',r.error);
+  });
+  buildStFleet();
+}
+
+function delVeh(btn){
+  var vid=btn.dataset.vid;
+  var v=FLEET.find(function(x){return x.id===vid;});if(!v)return;
+  if(!confirm('Remove '+v.name+'?'))return;
+  supa.from('vehicles').update({active:false}).eq('id',vid).then(function(){});
+  FLEET=FLEET.filter(function(x){return x.id!==vid;});
+  buildStFleet();
+}
+
+function addVehForm(){
+  var f=document.getElementById('add-veh-form');
+  if(f)f.style.display=f.style.display==='none'?'block':'none';
+}
+
+async function hideAddVehForm(){var f=document.getElementById("add-veh-form");if(f)f.style.display="none";}
+async function saveNewVeh(){
+  var name=document.getElementById('nv-name').value.trim();
+  var type=document.getElementById('nv-type').value;
+  var pax=parseInt(document.getElementById('nv-pax').value)||4;
+  var mot=document.getElementById('nv-mot').value;
+  var reg=document.getElementById('nv-reg').value.trim().toUpperCase();
+  if(!name){alert('Vehicle name required');return;}
+  var r=await supa.from('vehicles').insert({name:name,type:type,pax:pax,mot_expiry:mot||null,reg:reg||null,active:true}).select().single();
+  if(r.error){console.error('Add vehicle:',r.error);return;}
+  FLEET.push({id:r.data.id,name:name,reg:reg,type:type,pax:pax,mot:mot,ins:'',notes:''});
+  document.getElementById('add-veh-form').style.display='none';
+  buildStFleet();
+}
+
+function buildStPricing(){
+  var el=document.getElementById('st-pricing');if(!el)return;
+  var lastAirport='';
+  var h='<div style="padding-top:4px">';
+  h+='<div style="display:grid;grid-template-columns:90px 40px 1fr 1fr 1fr;gap:4px;margin-bottom:6px">';
+  h+='<div class="ap-lbl" style="text-align:left">Airport</div><div class="ap-lbl">Pax</div><div class="ap-lbl">Std</div><div class="ap-lbl">VIP</div><div class="ap-lbl">Bus</div></div>';
+  AP_PRICES.forEach(function(row,i){
+    h+='<div class="ap-row">';
+    h+='<div class="ap-airport">'+(row.airport!==lastAirport?e(row.airport):'')+'</div>';
+    lastAirport=row.airport;
+    h+='<div class="ap-pax">'+e(row.pax)+'</div>';
+    h+='<input class="ap-field" type="text" value="'+e(row.std)+'" data-idx="'+i+'" data-field="std" onchange="updAP(this)">';
+    h+='<input class="ap-field" type="text" value="'+e(row.vip)+'" data-idx="'+i+'" data-field="vip" onchange="updAP(this)">';
+    h+='<input class="ap-field" type="text" value="'+e(row.bus)+'" data-idx="'+i+'" data-field="bus" onchange="updAP(this)">';
+    h+='</div>';
+  });
+  h+='<div class="ap-notes">+£20 unsociable hours (23:00-06:00) &middot; +£49 drinks &middot; +£49 trailer &middot; +£5 unbooked drop-off</div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function updAP(el){
+  var idx=parseInt(el.dataset.idx);
+  var field=el.dataset.field;
+  if(AP_PRICES[idx])AP_PRICES[idx][field]=el.value;
+}
+
+
+
+/* ── INIT ── */
+
+/* ── SUPABASE DATA LAYER ── */
+function dbToJob(r){
+  return {
+    id:r.id,name:r.name||'',ph:r.phone||'\u2014',email:r.email||'',
+    ch:r.channel||'Phone call',occ:r.occasion||'',veh:r.vehicle||'',pax:r.pax||'',
+    pu:r.pickup||'',do:r.dropoff||'',stops:r.stops||[],
+    ds:r.job_date||'',tm:r.job_time?r.job_time.slice(0,5):'',
+    date:r.job_date?fd(r.job_date):'',
+    car_seat:r.car_seat||false,trailer:r.trailer||false,
+    fl:r.flight||'',return_flight:r.return_flight||'',
+    return_journey:r.return_journey||'',
+    rd:r.return_date||'',rt:r.return_time?r.return_time.slice(0,5):'',
+    rp:r.return_dropoff||'',
+    wedding_venue:r.wedding_venue||'',wedding_vehicles:r.wedding_vehicles||'',
+    num_children:r.num_children||'',grinch:r.grinch||'',licence:r.licence||'',
+    pr:r.price||'\u00a3',status:r.status||'new',
+    quote_sent:r.quote_sent||false,quote_sent_at:r.quote_sent_at||'',
+    avail_ack:r.avail_ack||false,
+    drv:r.driver_name||'TBC',dp:r.driver_phone||'',
+    linked_id:r.linked_job_id||null,is_return:r.is_return||false,
+    notes:r.notes||'',
+    from:r.pickup?ab(r.pickup):'?',to:r.dropoff?ab(r.dropoff):'?',
+    color_cat:r.color_cat||''
+  };
+}
+function jobToDb(j){
+  return {
+    name:j.name,phone:(j.ph==='\u2014'||!j.ph)?null:j.ph,
+    email:j.email||null,channel:j.ch||'Phone call',
+    occasion:j.occ||null,vehicle:j.veh||null,pax:j.pax||null,
+    pickup:j.pu||null,dropoff:j.do||null,stops:j.stops||[],
+    job_date:j.ds||null,job_time:j.tm||null,
+    car_seat:!!j.car_seat,trailer:!!j.trailer,
+    flight:j.fl||null,return_flight:j.return_flight||null,
+    return_journey:j.return_journey||'',
+    return_date:j.rd||null,return_time:j.rt||null,return_dropoff:j.rp||null,
+    wedding_venue:j.wedding_venue||null,wedding_vehicles:j.wedding_vehicles||null,
+    num_children:j.num_children||null,grinch:j.grinch||null,licence:j.licence||null,
+    price:j.pr||'\u00a3',status:j.status||'new',
+    quote_sent:!!j.quote_sent,quote_sent_at:j.quote_sent_at||null,
+    avail_ack:!!j.avail_ack,
+    driver_name:j.drv||'TBC',driver_phone:j.dp||null,
+    linked_job_id:j.linked_id||null,is_return:!!j.is_return,notes:j.notes||null,
+    color_cat:j.color_cat||null
+  };
+}
+async function sbFetch(table, params){
+  var url=SUPA_URL+'/rest/v1/'+table+'?'+params;
+  var r=await fetch(url,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'}});
+  if(!r.ok)throw new Error('HTTP '+r.status+' on '+table);
+  return r.json();
+}
+
+async function dbLoadAll(){
+  try{
+    var data=await sbFetch('jobs','select=*&order=job_date.asc.nullslast,job_time.asc.nullslast');
+    jobs=data.map(dbToJob);
+  }catch(err){console.error('Load jobs:',err.message||err);jobs=[];}
+  try{
+    var ddata=await sbFetch('drivers','select=*&active=eq.true&order=name.asc');
+    drivers=ddata.map(function(x){return{id:(x.name||'').slice(0,2).toUpperCase(),name:x.name,phone:x.phone||''};});
+  }catch(err){console.error('Load drivers:',err.message||err);}
+  try{
+    var vdata=await sbFetch('vehicles','select=*&active=eq.true&order=name.asc');
+    FLEET=vdata.map(function(x){return{id:x.id,name:x.name,reg:x.reg||'',type:x.type||'',pax:x.pax||0,mot:x.mot_expiry||'',ins:x.ins_expiry||'',notes:x.notes||''};});
+  }catch(err){console.error('Load vehicles:',err.message||err);}
+}
+async function dbSave(j){
+  var data=jobToDb(j);
+  var isTemp=!j.id||j.id.startsWith('j-')||j.id.startsWith('ret-');
+  try{
+    var url,method;
+    if(isTemp){
+      url=SUPA_URL+'/rest/v1/jobs';method='POST';
+    } else {
+      url=SUPA_URL+'/rest/v1/jobs?id=eq.'+encodeURIComponent(j.id);method='PATCH';
+    }
+    var r=await fetch(url,{
+      method:method,
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(isTemp?data:[data])
+    });
+    if(!r.ok){var t=await r.text();console.error('dbSave error:',r.status,t);return null;}
+    var result=await r.json();
+    return Array.isArray(result)?result[0]:result;
+  }catch(err){console.error('dbSave:',err.message||err);return null;}
+}
+function showLoading(){var e=document.getElementById('loading-overlay');if(e)e.style.display='flex';}
+function hideLoading(){var e=document.getElementById('loading-overlay');if(e)e.style.display='none';}
+function subscribeRealtime(){
+  setInterval(function(){
+    dbLoadAll().then(function(){
+      refreshLists();
+      if(cur==='j'&&CUR_JOB&&jobs.find(function(x){return x.id===CUR_JOB;}))renderJob();
+    }).catch(function(){});
+  },30000);
+}
+var updJTimer=null;
+
+function renderJobView(j){
+  var occLabels={airport:'Airport transfer',wedding:'Wedding',prom:'Prom / Party',concert:'Concert / Event',corporate:'Corporate',golf:'Golf',tour:'Private tour',santa:'Santa VIP',rental:'Self-drive rental',other:'Other'};
+  var sh=mkSheet(j);
+  var iWA=j.dp?'https://wa.me/'+j.dp.replace(/\+/g,'')+'?text='+encodeURIComponent(sh):'';
+  var waC=j.ph&&j.ph!=='\u2014'?'https://wa.me/'+j.ph.replace(/[\s+()-]/g,''):'';
+
+  var h='';
+
+  // Header
+  h+='<div class="jdh"><div class="jdhn">'+e(j.name)+'</div>';
+  if(j.from&&j.to)h+='<div class="jdhr">'+e(j.from)+' \u2192 '+e(j.to)+'</div>';
+  h+='<div class="jdhs">'+(j.date||fd(j.ds)||'Date TBC')+(j.tm?' · '+e(j.tm):'')+'</div>';
+  if(j.veh)h+='<div class="jdhv">'+e(j.veh)+'</div>';
+  h+='<div style="margin-top:8px"><span class="sbdg s-'+j.status+'">'+(j.status==='confirmed'?'Confirmed':'Done')+'</span>'+(j.is_return?'<span class="return-badge">\u21a9 Return leg</span>':'')+'</div>';
+  h+='</div>';
+
+  // Edit button
+  h+='<div class="edit-bar"><button class="edit-bar-btn edit" onclick="enterEditMode()">\u270E Edit details</button></div>';
+
+  // View sections
+  h+='<div class="view-section"><h3>Customer</h3>';
+  h+='<div class="view-grid">';
+  h+=vf('Name',j.name);h+=vf('Phone',j.ph==='\u2014'?'':j.ph);
+  h+=vf('Email',j.email);h+=vf('Channel',j.ch);
+  h+='</div></div>';
+
+  h+='<div class="view-section"><h3>Journey</h3>';
+  h+='<div class="view-grid">';
+  h+=vf('Type',occLabels[j.occ]||j.occ);h+=vf('Vehicle',j.veh);
+  h+=vf('Passengers',j.pax);h+=vf('Price',j.pr==='\u2014'?'':j.pr);
+  h+='</div></div>';
+
+  h+='<div class="view-section"><h3>Date &amp; time</h3>';
+  h+='<div class="view-grid">';
+  h+=vf('Date',j.date||fd(j.ds));h+=vf('Time',j.tm);
+  h+='</div></div>';
+
+  h+='<div class="view-section"><h3>Route</h3>';
+  h+=vf('Pickup',j.pu);
+  (j.stops||[]).forEach(function(s,i){h+=vf('Stop '+(i+2),s);});
+  h+=vf('Drop-off',j.do);
+  if(j.fl)h+=vf('Flight',j.fl);
+  if(j.return_journey==='yes'){
+    h+='<div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--blt)">';
+    h+=vf('Return date',j.rd?fd(j.rd):'');
+    h+=vf('Return time',j.rt);
+    if(j.rp)h+=vf('Return drop-off',j.rp);
+    if(j.return_flight)h+=vf('Return flight',j.return_flight);
+    h+='</div>';
+  }
+  h+='</div>';
+
+  var extras=[];
+  if(j.car_seat)extras.push('Child car seat');
+  if(j.trailer)extras.push('Trailer (+\u00a349)');
+  if(extras.length)h+='<div class="view-section"><h3>Extras</h3>'+vf('',extras.join(' · '))+'</div>';
+  if(j.notes)h+='<div class="view-section"><h3>Notes</h3><div class="view-val">'+e(j.notes)+'</div></div>';
+
+  // Linked job
+  if(j.linked_id){
+    var lj=jobs.find(function(x){return x.id===j.linked_id;});
+    if(lj){
+      h+='<div class="view-section"><h3>Linked job</h3>';
+      h+='<div class="linked-job" data-id="'+e(lj.id)+'" onclick="openJobFromEl(this)">';
+      h+='<div class="linked-job-ico">'+(lj.is_return?'\u21a9':'\u2197')+'</div>';
+      h+='<div class="linked-job-txt"><div class="linked-job-lbl">'+(lj.is_return?'Return leg':'Outbound')+'</div>';
+      h+='<div class="linked-job-name">'+e(lj.from)+' \u2192 '+e(lj.to)+'</div>';
+      h+='<div class="linked-job-lbl" style="margin-top:2px;text-transform:none;letter-spacing:0;font-weight:500;color:var(--txt3)">'+(lj.date||fd(lj.ds)||'TBC')+(lj.tm?' · '+lj.tm:'')+' · Driver: '+(lj.drv||'TBC')+'</div>';
+      h+='</div><div class="linked-job-arr">\u203a</div></div></div>';
+    }
+  } else if(!j.is_return){
+    h+='<div class="view-section"><h3>Return leg</h3><div style="display:flex;align-items:center;justify-content:space-between"><div style="font-size:13px;color:var(--txt3);font-weight:500">No return leg</div><button style="background:var(--surf2);border:0.5px solid var(--blt2);border-radius:var(--r);padding:6px 12px;font-size:12px;font-weight:600;color:var(--txt2);cursor:pointer;font-family:inherit" data-id="'+e(j.id)+'" onclick="addReturnLeg(this.dataset.id)">+ Add return leg</button></div></div>';
+  }
+
+  // Contact actions
+  h+='<div class="act-row">';
+  h+='<button class="ab"'+(waC?' data-url="'+e(waC)+'" onclick="openUrl(this)"':' style="opacity:.35"')+'>'+' <span class="ab-ico">💬</span>WhatsApp</button>';
+  h+='<button class="ab"'+(waC?' data-url="'+e('tel:'+j.ph)+'" onclick="openUrl(this)"':' style="opacity:.35"')+'>'+' <span class="ab-ico">📞</span>Call</button>';
+  h+='<button class="ab" data-id="'+e(j.id)+'" onclick="confirmToCalEl(this.dataset.id)"><span class="ab-ico">📅</span>Add to calendar</button>';
+  h+='<button class="ab" data-id="'+e(j.id)+'" onclick="setStatus(this.dataset.id,\'done\')"><span class="ab-ico">\u2713</span>Mark done</button>';
+  h+='</div>';
+
+  // Driver + job sheet
+  h+='<div class="sec"><h3>Driver</h3>';
+  h+='<div class="curd" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surf2);border-radius:var(--r);margin-bottom:12px;border:0.5px solid var(--blt)">';
+  h+='<div style="width:32px;height:32px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff" id="jd-av">'+e((j.drv||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase())+'</div>';
+  h+='<div><div style="font-size:11px;color:var(--txt3);font-weight:500">Assigned driver</div><div style="font-size:14px;font-weight:600;color:var(--txt);margin-top:1px" id="jd-name">'+e(j.drv||'TBC')+'</div></div></div>';
+  h+=buildDriverPicker(j,sh);
+  h+='<div class="plbl">Job sheet</div>';
+  h+='<div class="prev" id="jprev">'+e(sh)+'</div>';
+  h+='<div class="sndrow"><button class="swa" id="jwa"'+(iWA?' data-url="'+e(iWA)+'" onclick="openUrl(this)"':' style="opacity:.35"')+'>\u25b6 Send via WhatsApp</button>';
+  h+='<button class="scp" onclick="doCopy()">📋 Copy</button></div>';
+  h+='<div class="ctst" id="jctst"></div>';
+  h+='</div>';
+
+  // Cancel button
+  if(j.status!=='cancelled'){
+    h+='<div class="cancel-zone"><button class="cancel-btn" data-id="'+e(j.id)+'" onclick="showCancelConfirm(this)">Cancel booking</button>';
+    h+='<div class="cancel-confirm" id="cancel-confirm-'+e(j.id)+'">';
+    h+='<div class="cancel-confirm-msg">Are you sure you want to cancel this booking?'+(j.linked_id?'<br>The linked return job will also be cancelled.':'')+'</div>';
+    h+='<div class="cancel-confirm-btns"><button class="cancel-no" data-id="'+e(j.id)+'" onclick="hideCancelConfirm(this)">Keep booking</button>';
+    h+='<button class="cancel-yes" data-id="'+e(j.id)+'" onclick="confirmCancel(this)">Yes, cancel it</button></div></div></div>';
+  }
+
+  document.getElementById('jcont').innerHTML=h;
+  renderAvailWarn();
+}
+
+function vf(label,val){
+  var display=val?e(val):'<span class="empty">—</span>';
+  return '<div class="view-field"><div class="view-lbl">'+e(label)+'</div><div class="view-val'+(val?'':' empty')+'">'+display+'</div></div>';
+}
+
+function enterEditMode(){
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j)return;
+  JOB_EDIT_MODE=true;
+  JOB_SNAPSHOT=JSON.stringify(j);
+  renderJob();
+}
+
+function exitEditMode(save){
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j)return;
+  if(save){
+    dbSave(j);
+    refreshLists();
+  } else {
+    // Restore snapshot
+    var snap=JSON.parse(JOB_SNAPSHOT);
+    Object.keys(snap).forEach(function(k){j[k]=snap[k];});
+  }
+  JOB_EDIT_MODE=false;
+  JOB_SNAPSHOT=null;
+  renderJob();
+}
+
+function hasUnsavedChanges(){
+  if(!JOB_SNAPSHOT||!CUR_JOB)return false;
+  var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j)return false;
+  return JSON.stringify(j)!==JOB_SNAPSHOT;
+}
+
+
+
+function installApp(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(function(result){
+    if(result.outcome === 'accepted'){
+      var btn = document.getElementById('install-btn');
+      if(btn) btn.style.display = 'none';
+    }
+    deferredInstallPrompt = null;
+  });
+}
+
+
+/* ── PASSWORD ── */
+var PW_CODE='258000';
+var PW_KEY='ket_auth';
+var pwEntry='';
+
+
+function pwClick(wrong){
+  try{
+    var ctx=new(window.AudioContext||window.webkitAudioContext)();
+    var osc=ctx.createOscillator();
+    var gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    if(wrong){
+      // Two low beeps for wrong code
+      osc.frequency.value=200;
+      gain.gain.setValueAtTime(0.15,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.15);
+      osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.15);
+    } else {
+      // Short high click for digit
+      osc.frequency.value=1100;
+      gain.gain.setValueAtTime(0.08,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.04);
+      osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.04);
+    }
+    setTimeout(function(){ctx.close();},300);
+  }catch(e){}
+}
+function pwKey(d){
+  console.log('pwKey called:',d);
+  if(d===''||pwEntry.length>=6)return;
+  pwEntry+=d;
+  if(navigator.vibrate)navigator.vibrate(8);
+  pwClick(false);
+  pwUpdateDots();
+  if(pwEntry.length===6)setTimeout(pwCheck,120);
+}
+
+function pwDel(){
+  if(!pwEntry.length)return;
+  pwEntry=pwEntry.slice(0,-1);
+  if(navigator.vibrate)navigator.vibrate(5);
+  pwUpdateDots();
+  document.getElementById('pw-err').textContent='';
+}
+
+function pwUpdateDots(){
+  for(var i=0;i<6;i++){
+    var dot=document.getElementById('pd'+i);
+    if(dot)dot.className='pw-dot'+(i<pwEntry.length?' filled':'');
+  }
+}
+
+function pwCheck(){
+  if(pwEntry===PW_CODE){
+    try{localStorage.setItem(PW_KEY,'1');}catch(e){}
+    var sc=document.getElementById('pw-screen');
+    if(sc)sc.style.display='none';
+  } else {
+    if(navigator.vibrate)navigator.vibrate([60,40,60]);
+    pwClick(true);
+    document.getElementById('pw-err').textContent='Incorrect code';
+    pwEntry='';
+    pwUpdateDots();
+  }
+}
+
+function pwInit(){
+  var authed=false;
+  try{authed=localStorage.getItem(PW_KEY)==='1';}catch(e){}
+  if(authed){
+    var sc=document.getElementById('pw-screen');
+    if(sc)sc.style.display='none';
+  }
+}
+
+async function init(){
+  setChrome('d');
+  // Ensure there's always a history state to intercept
+  history.replaceState({ket:'d'},'',location.href);
+  showLoading();
+  await dbLoadAll();
+  hideLoading();
+  buildDash();buildPipeline();buildBookings();buildStDrvs();buildStFleet();buildStPricing();
+  subscribeRealtime();
+}
+// Swipe for calendar (month + day)
+(function(){
+  var tx=0,ty=0,ts=0;
+  document.addEventListener('touchstart',function(e){
+    tx=e.touches[0].clientX;ty=e.touches[0].clientY;ts=Date.now();
+  },{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(cur!=='c')return;
+    var dx=e.changedTouches[0].clientX-tx;
+    var dy=e.changedTouches[0].clientY-ty;
+    var dt=Date.now()-ts;
+    // Must be fast (<400ms), mostly horizontal, and >50px
+    if(dt>400||Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy)*1.5)return;
+    if(dx<0){
+      if(CAL_VIEW==='month')calNext();
+      else if(CAL_VIEW==='week')dvNext();
+    } else {
+      if(CAL_VIEW==='month')calPrev();
+      else if(CAL_VIEW==='week')dvPrev();
+    }
+  },{passive:true});
+})();
+pwInit();
+init();
+
+// Register service worker for PWA install on Android
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/sw.js').then(function(reg){
+      console.log('SW registered');
+    }).catch(function(err){
+      console.log('SW registration failed:',err);
+    });
+  });
+}
+</script>
+</body>
+</html>
