@@ -1199,7 +1199,7 @@ function renderJob(){
     // Job sheet
     h+='<div class="plbl">Job sheet preview</div>';
     h+='<div class="prev" id="jprev">'+e(sh)+'</div>';
-    h+='<div class="sndrow"><button class="swa" id="jwa" data-url="'+e(iWA)+'" onclick="openUrl(this)">▶ Send via WhatsApp</button>';
+    h+='<div class="sndrow"><button class="swa" id="jwa" data-url="'+e(iWA)+'" data-job-id="'+e(j.id)+'" onclick="sendJobSheetToDriver(this)">▶ Send via WhatsApp</button>';
     h+='<button class="scp" onclick="doCopy()">📋 Copy</button></div>';
     h+='<div class="ctst" id="jctst"></div>';
     h+='</div>';
@@ -1620,6 +1620,36 @@ function refreshLists(){
 
 function openUrl(el){if(el.dataset.url)window.open(el.dataset.url);}
 
+/* Opens WhatsApp with the job sheet as before, and — as a silent backup —
+   also emails the same job sheet to the driver's email if one is on file.
+   Uses FormSubmit.co (already used for the website's enquiry form) so no
+   separate email-sending backend is needed. */
+function sendJobSheetToDriver(btn){
+  openUrl(btn);
+  var jobId=btn.dataset.jobId;
+  var job=jobs.find(function(x){return x.id===jobId;});
+  if(!job)return;
+  var dr=drivers.find(function(x){return x.name===job.drv;});
+  if(!dr||!dr.email)return;
+  emailJobSheet(dr.email,job);
+}
+
+function emailJobSheet(email,job){
+  var sheetText=mkSheet(job);
+  var subject='Job Sheet — '+(job.date||fd(job.ds)||job.ds||'')+(job.tm?' '+job.tm:'')+' — '+(job.name||'');
+  var fd2=new FormData();
+  fd2.append('_subject',subject);
+  fd2.append('_template','box');
+  fd2.append('message',sheetText);
+  fetch('https://formsubmit.co/ajax/'+encodeURIComponent(email),{
+    method:'POST',
+    headers:{'Accept':'application/json'},
+    body:fd2
+  }).then(function(r){return r.json();}).then(function(data){
+    console.log('Job sheet emailed to '+email,data);
+  }).catch(function(err){console.error('Job sheet email failed:',err);});
+}
+
 function doCopy(){
   var pr=document.getElementById('jprev');if(!pr)return;var txt=pr.textContent;
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){showCT('Copied');}).catch(function(){fbCopy(txt);});}else{fbCopy(txt);}
@@ -1969,6 +1999,7 @@ function buildStDrvs(){
     h+='<div class="drv-edit-body" id="'+uid+'">';
     h+='<div style="margin-bottom:8px"><label class="fl">Name</label><input class="fi" type="text" value="'+e(d.name)+'" id="'+uid+'-name" placeholder="Driver name"></div>';
     h+='<div style="margin-bottom:10px"><label class="fl">Phone</label><input class="fi" type="tel" value="'+e(d.phone||'')+'" id="'+uid+'-phone" placeholder="+44..."></div>';
+    h+='<div style="margin-bottom:10px"><label class="fl">Email <span style="font-weight:400;color:var(--txt3)">(job sheet backup)</span></label><input class="fi" type="email" value="'+e(d.email||'')+'" id="'+uid+'-email" placeholder="driver@example.com"></div>';
     h+='<div style="display:flex;gap:8px;align-items:center">';
     h+='<button class="drv-save-btn" data-name="'+e(d.name)+'" data-uid="'+uid+'" onclick="saveDrv(this)">Save changes</button>';
     if(!isGeorge)h+='<button class="drv-del-btn" data-name="'+e(d.name)+'" onclick="delDrv(this)">Remove driver</button>';
@@ -1994,13 +2025,15 @@ function saveDrv(btn){
   if(!d)return;
   var newName=document.getElementById(uid+'-name').value.trim();
   var newPhone=document.getElementById(uid+'-phone').value.trim();
+  var emailEl=document.getElementById(uid+'-email');
+  var newEmail=emailEl?emailEl.value.trim():d.email;
   if(!newName)return;
   fetch(SUPA_URL+'/rest/v1/drivers?name=eq.'+encodeURIComponent(oldName),{
     method:'PATCH',
     headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
-    body:JSON.stringify({name:newName,phone:newPhone})
+    body:JSON.stringify({name:newName,phone:newPhone,email:newEmail})
   }).catch(function(err){console.error('Save driver:',err);});
-  d.name=newName;d.phone=newPhone;
+  d.name=newName;d.phone=newPhone;d.email=newEmail;
   buildStDrvs();
 }
 
@@ -2021,11 +2054,12 @@ function delDrv(btn){
 function addDrvPrompt(){
   var name=prompt('Driver name:');if(!name)return;
   var phone=prompt('Phone number:');
-  var newDrv={id:name.slice(0,2).toUpperCase(),name:name,phone:phone||''};
+  var email=prompt('Email (for job sheet backup, optional):');
+  var newDrv={id:name.slice(0,2).toUpperCase(),name:name,phone:phone||'',email:email||''};
   fetch(SUPA_URL+'/rest/v1/drivers',{
     method:'POST',
     headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
-    body:JSON.stringify({name:name,phone:phone||'',active:true})
+    body:JSON.stringify({name:name,phone:phone||'',email:email||'',active:true})
   }).catch(function(err){console.error('Add driver:',err);});
   drivers.push(newDrv);
   buildStDrvs();
@@ -2276,7 +2310,7 @@ async function dbLoadAll(){
   await autoAdvanceDone();
   try{
     var ddata=await sbFetch('drivers','select=*&active=eq.true&order=name.asc');
-    drivers=ddata.map(function(x){return{id:(x.name||'').slice(0,2).toUpperCase(),name:x.name,phone:x.phone||''};});
+    drivers=ddata.map(function(x){return{id:(x.name||'').slice(0,2).toUpperCase(),name:x.name,phone:x.phone||'',email:x.email||''};});
   }catch(err){console.error('Load drivers:',err.message||err);}
   try{
     var vdata=await sbFetch('vehicles','select=*&active=eq.true&order=name.asc');
@@ -2406,7 +2440,7 @@ function renderJobView(j){
   h+=buildDriverPicker(j,sh);
   h+='<div class="plbl">Job sheet</div>';
   h+='<div class="prev" id="jprev">'+e(sh)+'</div>';
-  h+='<div class="sndrow"><button class="swa" id="jwa"'+(iWA?' data-url="'+e(iWA)+'" onclick="openUrl(this)"':' style="opacity:.35"')+'>\u25b6 Send via WhatsApp</button>';
+  h+='<div class="sndrow"><button class="swa" id="jwa"'+(iWA?' data-url="'+e(iWA)+'" data-job-id="'+e(j.id)+'" onclick="sendJobSheetToDriver(this)"':' style="opacity:.35"')+'>\u25b6 Send via WhatsApp</button>';
   h+='<button class="scp" onclick="doCopy()">📋 Copy</button></div>';
   h+='<div class="ctst" id="jctst"></div>';
   h+='</div>';
