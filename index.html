@@ -550,6 +550,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
     <div class="qa-hint">Log quickly — fill in what you know. Edit full details from the job page.</div>
     <div><label class="fl">Customer name</label><input class="fi" id="fn" type="text" placeholder="Full name"><div class="ferr" id="en" style="display:none">Name required</div></div>
     <div><label class="fl">Phone number</label><input class="fi" id="fp" type="tel" placeholder="+44..."></div>
+    <div><label class="fl">WhatsApp number <span style="font-weight:400;color:var(--txt3)">(if different)</span></label><input class="fi" id="fwa" type="tel" placeholder="Leave blank if same as phone number"></div>
     <div><label class="fl">Channel</label><select class="fs" id="fch"><option>Phone call</option><option>WhatsApp</option><option>Facebook</option><option>Website form</option></select></div>
     <div><label class="fl">Occasion</label><select class="fs" id="focc"><option value="">Select...</option><option value="airport">Airport transfer</option><option value="wedding">Wedding</option><option value="prom">Prom / Party</option><option value="concert">Concert / Event</option><option value="corporate">Corporate</option><option value="golf">Golf</option><option value="tour">Private tour</option><option value="santa">Santa VIP visit</option><option value="rental">Self-drive rental</option><option value="other">Other</option></select></div>
     <div class="divider"></div><div class="sec-head">Route (if known)</div>
@@ -766,6 +767,12 @@ function telHref(p){
   var n=normPhone(p);if(!n)return'';
   return 'tel:+'+n;
 }
+/* Customer's WhatsApp number, if they use a different one to their main
+   phone (j.wa_ph) — falls back to the main phone number otherwise. */
+function custWa(j){
+  var w=(j.wa_ph||'').trim();
+  return w?w:j.ph;
+}
 function ab(a){
   if(!a)return'?';a=a.trim();
   var ap={'glasgow airport':'GLA','edinburgh airport':'EDH','edinburgh':'EDH','glasgow':'GLA','prestwick':'PIK','manchester airport':'MAN','manchester':'MAN','liverpool airport':'LPL','liverpool':'LPL','newcastle airport':'NCL','heathrow':'LHR','gatwick':'LGW','stansted':'STN'};
@@ -784,6 +791,7 @@ function mkSheet(j){
   if(j.fl)l.push('Flight: '+j.fl);
   if(j.rd){l.push('');l.push('RETURN: '+j.rd+(j.rt?' · '+j.rt:''));if(j.rp)l.push('Return pickup: '+j.rp);}
   l.push('');l.push('CUSTOMER');l.push(j.name);if(j.ph&&j.ph!=='—')l.push(j.ph);
+  if(j.wa_ph&&j.wa_ph!==j.ph)l.push('WhatsApp: '+j.wa_ph);
   if(j.notes){l.push('');l.push('NOTES');l.push(j.notes);}
   if(parsePrice(j.pr)&&!j.balance_paid){
     l.push('');l.push('PAYMENT');
@@ -1015,7 +1023,7 @@ function renderJob(){
   // Pipeline jobs always editable; confirmed jobs use view/edit toggle
   if(isConf&&!JOB_EDIT_MODE){renderJobView(j);return;}
   var sh=mkSheet(j);
-  var waC=waHref(j.ph);
+  var waC=waHref(custWa(j));
   var calT=encodeURIComponent(j.name+(j.from&&j.to?' — '+j.from+' → '+j.to:''));
   var calD=encodeURIComponent((j.pu?'Pickup: '+j.pu:'')+(j.do?'\nDrop-off: '+j.do:'')+(j.fl?'\nFlight: '+j.fl:'')+(j.notes?'\nNotes: '+j.notes:'')+(j.drv?'\nDriver: '+j.drv:''));
   var calUrl='https://calendar.google.com/calendar/r/eventedit?text='+calT+'&details='+calD+'&'+CP;
@@ -1042,7 +1050,7 @@ function renderJob(){
 
   // Pipeline action buttons
   if(isPipe){
-    var hasPhoneForWA=j.ph&&j.ph!=='\u2014';
+    var hasPhoneForWA=custWa(j)&&custWa(j)!=='\u2014';
     h+='<div class="act-row" style="flex-direction:column;gap:7px">';
     if(j.status==='new')h+='<button class="big-btn amber" data-id="'+e(j.id)+'" onclick="setStatus(this.dataset.id,\'quoted\')">Mark as quoted</button>';
     var hasReturn=j.return_journey==='yes';
@@ -1070,6 +1078,7 @@ function renderJob(){
   h+='<div class="sec-head">Customer</div>';
   h+='<div><label class="fl">Name</label><input class="fi" type="text" value="'+e(j.name)+'" onchange="updJ(&quot;name&quot;,this.value)"></div>';
   h+='<div><label class="fl">Phone</label><input class="fi" type="tel" value="'+e(j.ph==='\u2014'?'':j.ph)+'" placeholder="+44..." onchange="updJ(&quot;ph&quot;,this.value)"></div>';
+  h+='<div><label class="fl">WhatsApp number <span style="font-weight:400;color:var(--txt3)">(if different)</span></label><input class="fi" type="tel" value="'+e(j.wa_ph||'')+'" placeholder="Leave blank if same as phone" onchange="updJ(&quot;wa_ph&quot;,this.value)"></div>';
   h+='<div><label class="fl">Email</label><input class="fi" type="email" value="'+e(j.email||'')+'" placeholder="email@example.com" onchange="updJ(&quot;email&quot;,this.value)"></div>';
   h+='<div><label class="fl">Channel</label><select class="fs" onchange="updJ(&quot;ch&quot;,this.value)">';
   ['Phone call','WhatsApp','Facebook','Website form'].forEach(function(v){h+='<option'+(j.ch===v?' selected':'')+'>'+v+'</option>';});
@@ -1144,9 +1153,9 @@ function renderJob(){
   h+='<div><label class="fl">Quoted price</label>';
   var priceVal=(j.pr&&j.pr!=='\u2014')?j.pr:'\u00a3';
   h+='<div class="price-row"><input class="fi" type="text" id="jd-price" value="'+e(priceVal)+'" placeholder="\u00a3149" onfocus="jPriceFocus(this)" onchange="updJ(&quot;pr&quot;,this.value);jToggleSendQuote()">';
-  var canSend=isPipe&&j.ph&&j.ph!=='\u2014'&&j.pr&&j.pr!=='\u2014'&&j.pr!=='\u00a3';
+  var canSend=isPipe&&custWa(j)&&custWa(j)!=='\u2014'&&j.pr&&j.pr!=='\u2014'&&j.pr!=='\u00a3';
   h+='<button class="send-quote-btn" id="jd-sendquote" data-id="'+e(j.id)+'"'+(canSend?'':' disabled')+' onclick="sendQuote(this.dataset.id)">Send quote</button></div>';
-  if(!j.ph||j.ph==='\u2014')h+='<div class="quote-sent-note">Add a phone number to send a quote via WhatsApp</div>';
+  if(!custWa(j)||custWa(j)==='\u2014')h+='<div class="quote-sent-note">Add a phone number to send a quote via WhatsApp</div>';
   if(j.quote_sent)h+='<div class="quote-sent-note">\u2713 Quote sent '+(j.quote_sent_at||'')+'</div>';
   h+='</div>';
   if(isPipe&&j.status==='new'){
@@ -1263,7 +1272,7 @@ function jCancelReassign(){
   var rb=document.getElementById('jrbar');if(rb)rb.classList.remove('on');
 }
 
-function jConfirmReassign(){
+async function jConfirmReassign(){
   var j=jobs.find(function(x){return x.id===CUR_JOB;});if(!j||!PDN)return;
   j.drv=PDN;j.dp=PDP;
   document.querySelectorAll('#jdlist .dopt').forEach(function(o){
@@ -1283,6 +1292,7 @@ function jConfirmReassign(){
   var pr=document.getElementById('jprev');if(pr)pr.textContent=sh;
   var wb=document.getElementById('jwa');
   if(wb&&j.dp)wb.dataset.url=waHref(j.dp,sh);
+  await dbSave(j);
   refreshLists();
   setTimeout(function(){var t=document.getElementById('jrtst');if(t)t.classList.remove('on');},3000);
   PDN='';PDP='';
@@ -1368,7 +1378,7 @@ function jToggleSendQuote(){
   var priceEl=document.getElementById('jd-price');
   var pv=priceEl?priceEl.value.trim():'';
   var hasPrice=pv&&pv!=='\u00a3';
-  var hasPhone=j.ph&&j.ph!=='\u2014';
+  var hasPhone=custWa(j)&&custWa(j)!=='\u2014';
   btn.disabled=!(hasPrice&&hasPhone);
 }
 
@@ -1407,9 +1417,9 @@ async function sendQuote(id){
   var j=jobs.find(function(x){return x.id===id;});if(!j)return;
   var priceEl=document.getElementById('jd-price');
   if(priceEl)j.pr=priceEl.value.trim();
-  if(!j.pr||j.pr==='\u00a3'||!j.ph||j.ph==='\u2014')return;
+  if(!j.pr||j.pr==='\u00a3'||!custWa(j)||custWa(j)==='\u2014')return;
   var msg=buildQuoteMsg(j);
-  window.open(waHref(j.ph,msg));
+  window.open(waHref(custWa(j),msg));
   j.status='quoted';
   j.quote_sent=true;
   var now=new Date();
@@ -1424,8 +1434,8 @@ async function sendQuote(id){
    just a communication shortcut, not a lifecycle action. */
 function openWhatsAppCustom(id){
   var j=jobs.find(function(x){return x.id===id;});if(!j)return;
-  if(!j.ph||j.ph==='\u2014')return;
-  window.open(waHref(j.ph));
+  if(!custWa(j)||custWa(j)==='\u2014')return;
+  window.open(waHref(custWa(j)));
 }
 
 function buildFullyBookedMsg(j){
@@ -1446,10 +1456,10 @@ function buildFullyBookedMsg(j){
 
 async function sendFullyBooked(id){
   var j=jobs.find(function(x){return x.id===id;});if(!j)return;
-  if(!j.ph||j.ph==='\u2014')return;
+  if(!custWa(j)||custWa(j)==='\u2014')return;
   if(!confirm('Send an apology to '+j.name+' and mark this booking unavailable?'))return;
   var msg=buildFullyBookedMsg(j);
-  window.open(waHref(j.ph,msg));
+  window.open(waHref(custWa(j),msg));
   j.status='cancelled';
   j.notes=(j.notes?j.notes+'\n':'')+'Marked fully booked \u2014 no availability, apology sent '+fd(new Date().toISOString().slice(0,10));
   await dbSave(j);
@@ -1491,9 +1501,9 @@ function buildBalanceReminderMsg(j){
 
 async function sendBalanceReminder(id){
   var j=jobs.find(function(x){return x.id===id;});if(!j)return;
-  if(!j.ph||j.ph==='\u2014')return;
+  if(!custWa(j)||custWa(j)==='\u2014')return;
   var msg=buildBalanceReminderMsg(j);
-  window.open(waHref(j.ph,msg));
+  window.open(waHref(custWa(j),msg));
   j.balance_reminder_sent=true;
   var now=new Date();
   j.balance_reminder_sent_at=now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
@@ -1529,7 +1539,7 @@ function buildPaymentSection(j){
     h+='<button class="chip'+(j.balance_method==='bank_transfer'?' on':'')+'" data-id="'+e(j.id)+'" onclick="setBalanceMethod(this.dataset.id,\'bank_transfer\')">Bank transfer</button>';
     h+='<button class="chip'+(j.balance_method==='cash_driver'?' on':'')+'" data-id="'+e(j.id)+'" onclick="setBalanceMethod(this.dataset.id,\'cash_driver\')">Cash to driver</button>';
     h+='</div>';
-    h+='<button class="bal-reminder-btn" data-id="'+e(j.id)+'"'+(j.ph&&j.ph!=='\u2014'?'':' disabled')+' onclick="sendBalanceReminder(this.dataset.id)">\ud83d\udcac Send balance reminder</button>';
+    h+='<button class="bal-reminder-btn" data-id="'+e(j.id)+'"'+(custWa(j)&&custWa(j)!=='\u2014'?'':' disabled')+' onclick="sendBalanceReminder(this.dataset.id)">\ud83d\udcac Send balance reminder</button>';
     if(j.balance_reminder_sent)h+='<div class="quote-sent-note">\u2713 Reminder sent '+(j.balance_reminder_sent_at||'')+'</div>';
   }
   h+='<label class="chk-row" style="margin-top:10px"><input type="checkbox" data-id="'+e(j.id)+'"'+(j.balance_paid?' checked':'')+' onchange="toggleBalancePaid(this.dataset.id,this.checked)"><div><div class="chk-lbl">Balance paid in full</div><div class="chk-sub">Removes payment info from the job sheet</div></div></label>';
@@ -1630,6 +1640,7 @@ async function createReturnJob(j){
     id:retId,
     name:j.name,
     ph:j.ph,
+    wa_ph:j.wa_ph||'',
     email:j.email||'',
     ch:j.ch,
     occ:j.occ,
@@ -1718,6 +1729,7 @@ async function saveJob(){
   var tm=document.getElementById('ftm').value;
   var j={
     id:'j-'+(++idX),name:nm,ph:document.getElementById('fp').value.trim()||'—',
+    wa_ph:document.getElementById('fwa').value.trim(),
     ch:document.getElementById('fch').value,occ:document.getElementById('focc').value,
     pu:pu,do:dst,ds:ds,tm:tm,date:ds?fd(ds):'',
     from:ab(pu||'?'),to:ab(dst||'?'),
@@ -1727,7 +1739,7 @@ async function saveJob(){
   };
   var saved=await dbSave(j);if(saved)j.id=saved.id;
   jobs.push(j);
-  ['fn','fp','fpu','fdst','fdt','ftm','fnt'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['fn','fp','fwa','fpu','fdst','fdt','ftm','fnt'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('focc').value='';
   document.getElementById('en').style.display='none';
   buildPipeline();
@@ -2275,7 +2287,7 @@ function updAP(el){
 /* ── SUPABASE DATA LAYER ── */
 function dbToJob(r){
   return {
-    id:r.id,name:r.name||'',ph:r.phone||'\u2014',email:r.email||'',
+    id:r.id,name:r.name||'',ph:r.phone||'\u2014',wa_ph:r.wa_phone||'',email:r.email||'',
     ch:r.channel||'Phone call',occ:r.occasion||'',veh:r.vehicle||'',pax:r.pax||'',
     pu:r.pickup||'',do:r.dropoff||'',stops:r.stops||[],
     ds:r.job_date||'',tm:r.job_time?r.job_time.slice(0,5):'',
@@ -2305,6 +2317,7 @@ function dbToJob(r){
 function jobToDb(j){
   return {
     name:j.name,phone:(j.ph==='\u2014'||!j.ph)?null:j.ph,
+    wa_phone:j.wa_ph||null,
     email:j.email||null,channel:j.ch||'Phone call',
     occasion:j.occ||null,vehicle:j.veh||null,pax:j.pax||null,
     pickup:j.pu||null,dropoff:j.do||null,stops:j.stops||[],
@@ -2403,7 +2416,7 @@ function renderJobView(j){
   var occLabels={airport:'Airport transfer',wedding:'Wedding',prom:'Prom / Party',concert:'Concert / Event',corporate:'Corporate',golf:'Golf',tour:'Private tour',santa:'Santa VIP',rental:'Self-drive rental',other:'Other'};
   var sh=mkSheet(j);
   var iWA=waHref(j.dp,sh);
-  var waC=waHref(j.ph);
+  var waC=waHref(custWa(j));
 
   var h='';
 
@@ -2422,6 +2435,7 @@ function renderJobView(j){
   h+='<div class="view-section"><h3>Customer</h3>';
   h+='<div class="view-grid">';
   h+=vf('Name',j.name);h+=vf('Phone',j.ph==='\u2014'?'':j.ph);
+  if(j.wa_ph&&j.wa_ph!==j.ph)h+=vf('WhatsApp',j.wa_ph);
   h+=vf('Email',j.email);h+=vf('Channel',j.ch);
   h+='</div></div>';
 
