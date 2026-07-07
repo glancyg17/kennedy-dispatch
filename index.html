@@ -1032,8 +1032,15 @@ function renderJob(){
   if(j.from&&j.to)h+='<div class="jdhr">'+e(j.from)+' → '+e(j.to)+'</div>';
   h+='<div class="jdhs">'+(j.date||fd(j.ds)||'Date TBC')+(j.tm?' · '+e(j.tm):'')+'</div>';
   if(j.veh)h+='<div class="jdhv">'+e(j.veh)+'</div>';
-  h+='<div style="margin-top:8px"><span class="sbdg s-'+j.status+'">'+(j.status==='new'?'New':j.status==='quoted'?'Quoted':j.status==='confirmed'?'Confirmed':'Done')+'</span>'+(isConf?(j.balance_paid?'<span class="sbdg s-confirmed" style="margin-left:6px">✓ Paid in full</span>':(parsePrice(j.pr)?'<span class="sbdg s-quoted" style="margin-left:6px">Balance due: '+fmtMoney(balanceAmt(j))+'</span>':'')):'')+(j.is_return?'<span class="return-badge">↩ Return leg</span>':'')+'</div>';
+  h+='<div style="margin-top:8px"><span class="sbdg s-'+j.status+'">'+(j.status==='new'?'New':j.status==='quoted'?'Quoted':j.status==='confirmed'?'Confirmed':j.status==='cancelled'?'Cancelled':'Done')+'</span>'+(isConf?(j.balance_paid?'<span class="sbdg s-confirmed" style="margin-left:6px">✓ Paid in full</span>':(parsePrice(j.pr)?'<span class="sbdg s-quoted" style="margin-left:6px">Balance due: '+fmtMoney(balanceAmt(j))+'</span>':'')):'')+(j.is_return?'<span class="return-badge">↩ Return leg</span>':'')+'</div>';
   h+='</div>';
+
+  // Cancelled jobs — offer a way back into Pipeline
+  if(j.status==='cancelled'){
+    h+='<div class="act-row" style="flex-direction:column;gap:7px">';
+    h+='<button class="big-btn amber" data-id="'+e(j.id)+'" onclick="setStatus(this.dataset.id,\'new\')">\u21a9 Reopen \u2014 move back to Pipeline</button>';
+    h+='</div>';
+  }
 
   // Pipeline action buttons
   if(isPipe){
