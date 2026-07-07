@@ -1123,6 +1123,7 @@ function renderJob(){
   h+='<div class="cond-sec" id="jd-santa'+(j.occ==='santa'?' vis':'')+'"><div style="margin-top:12px"><label class="fl">Number of children</label><select class="fs" onchange="updJ(&quot;num_children&quot;,this.value)"><option value="">Select</option>';
   ['1','2','3','4','5'].forEach(function(v){h+='<option'+(j.num_children===v?' selected':'')+'>'+v+'</option>';});
   h+='</select></div>';
+  h+='<div><label class="fl">Children\'s ages</label><input class="fi" type="text" value="'+e(j.children_ages||'')+'" placeholder="e.g. 3, 5, 7" onchange="updJ(&quot;children_ages&quot;,this.value)"></div>';
   h+='<div><label class="fl">Include Grinch chase?</label><select class="fs" onchange="updJ(&quot;grinch&quot;,this.value)"><option value="">Not sure yet</option><option value="yes"'+(j.grinch==='yes'?' selected':'')+'>Yes please!</option><option value="no"'+(j.grinch==='no'?' selected':'')+'>No thank you</option></select></div></div>';
 
   // Rental extra
@@ -2287,7 +2288,7 @@ function dbToJob(r){
     rd:r.return_date||'',rt:r.return_time?r.return_time.slice(0,5):'',
     rp:r.return_dropoff||'',
     wedding_venue:r.wedding_venue||'',wedding_vehicles:r.wedding_vehicles||'',
-    num_children:r.num_children||'',grinch:r.grinch||'',licence:r.licence||'',
+    num_children:r.num_children||'',children_ages:r.children_ages||'',grinch:r.grinch||'',licence:r.licence||'',
     pr:r.price||'\u00a3',status:r.status||'new',
     quote_sent:r.quote_sent||false,quote_sent_at:r.quote_sent_at||'',
     avail_ack:r.avail_ack||false,
@@ -2315,7 +2316,7 @@ function jobToDb(j){
     return_journey:j.return_journey||'',
     return_date:j.rd||null,return_time:j.rt||null,return_dropoff:j.rp||null,
     wedding_venue:j.wedding_venue||null,wedding_vehicles:j.wedding_vehicles||null,
-    num_children:j.num_children||null,grinch:j.grinch||null,licence:j.licence||null,
+    num_children:j.num_children||null,children_ages:j.children_ages||null,grinch:j.grinch||null,licence:j.licence||null,
     price:j.pr||'\u00a3',status:j.status||'new',
     quote_sent:!!j.quote_sent,quote_sent_at:j.quote_sent_at||null,
     avail_ack:!!j.avail_ack,
@@ -2431,6 +2432,24 @@ function renderJobView(j){
   h+=vf('Type',occLabels[j.occ]||j.occ);h+=vf('Vehicle',j.veh);
   h+=vf('Passengers',j.pax);h+=vf('Price',j.pr==='\u2014'?'':j.pr);
   h+='</div></div>';
+
+  // Occasion-specific details
+  if(j.occ==='wedding'&&(j.wedding_venue||j.wedding_vehicles)){
+    h+='<div class="view-section"><h3>Wedding details</h3><div class="view-grid">';
+    h+=vf('Venue',j.wedding_venue);h+=vf('Vehicles needed',j.wedding_vehicles);
+    h+='</div></div>';
+  }
+  if(j.occ==='santa'&&(j.num_children||j.children_ages||j.grinch)){
+    h+='<div class="view-section"><h3>Santa VIP details</h3><div class="view-grid">';
+    h+=vf('Number of children',j.num_children);h+=vf('Children\'s ages',j.children_ages);
+    h+=vf('Grinch chase',j.grinch==='yes'?'Yes please!':j.grinch==='no'?'No thank you':'');
+    h+='</div></div>';
+  }
+  if(j.occ==='rental'&&j.licence){
+    h+='<div class="view-section"><h3>Rental details</h3><div class="view-grid">';
+    h+=vf('Driving licence',j.licence);
+    h+='</div></div>';
+  }
 
   h+='<div class="view-section"><h3>Date &amp; time</h3>';
   h+='<div class="view-grid">';
