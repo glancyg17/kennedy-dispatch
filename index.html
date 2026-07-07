@@ -149,6 +149,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .big-btn.red{background:var(--red);color:#fff}
 .big-btn.green{background:var(--okbg);color:var(--oktxt)}
 .big-btn.amber{background:var(--warnbg);color:var(--warntxt)}
+.big-btn.grey{background:var(--surf2);color:var(--txt2)}
 
 /* ── DRIVER PICKER ── */
 .dopt{border:0.5px solid var(--blt2);border-radius:var(--r);overflow:hidden;cursor:pointer;background:var(--surf);margin-bottom:6px}
@@ -1036,11 +1037,15 @@ function renderJob(){
 
   // Pipeline action buttons
   if(isPipe){
+    var hasPhoneForWA=j.ph&&j.ph!=='\u2014';
     h+='<div class="act-row" style="flex-direction:column;gap:7px">';
     if(j.status==='new')h+='<button class="big-btn amber" data-id="'+e(j.id)+'" onclick="setStatus(this.dataset.id,\'quoted\')">Mark as quoted</button>';
     var hasReturn=j.return_journey==='yes';
     var confirmLabel=hasReturn?'✓ Confirm + Create 2 calendar entries':'✓ Confirm + Add to calendar';
     h+='<button class="big-btn red" data-id="'+e(j.id)+'" onclick="confirmToCalEl(this.dataset.id)">'+confirmLabel+'</button>';
+    h+='<button class="big-btn green" data-id="'+e(j.id)+'"'+(hasPhoneForWA?'':' disabled')+' onclick="openWhatsAppCustom(this.dataset.id)">\ud83d\udcac Message customer on WhatsApp</button>';
+    h+='<button class="big-btn grey" data-id="'+e(j.id)+'"'+(hasPhoneForWA?'':' disabled')+' onclick="sendFullyBooked(this.dataset.id)">Fully booked \u2014 send apology</button>';
+    if(!hasPhoneForWA)h+='<div class="quote-sent-note">Add a phone number to message this customer on WhatsApp</div>';
     h+='</div>';
   }
 
@@ -1403,6 +1408,45 @@ async function sendQuote(id){
   j.quote_sent=true;
   var now=new Date();
   j.quote_sent_at=now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
+  await dbSave(j);
+  refreshLists();
+  renderJob();
+}
+
+/* Opens WhatsApp to the customer's number with no pre-filled text, so
+   George can type a one-off message freely. No status change — this is
+   just a communication shortcut, not a lifecycle action. */
+function openWhatsAppCustom(id){
+  var j=jobs.find(function(x){return x.id===id;});if(!j)return;
+  if(!j.ph||j.ph==='\u2014')return;
+  window.open(waHref(j.ph));
+}
+
+function buildFullyBookedMsg(j){
+  var l=[];
+  l.push('Hi '+j.name+', thank you for getting in touch with Kennedy Executive Travel.');
+  l.push('');
+  var routeTxt=(j.from&&j.to&&j.from!=='?')?(j.from+' \u2192 '+j.to):(j.occ?j.occ:'your journey');
+  var dateTxt=j.date||fd(j.ds)||'your requested date';
+  l.push('Unfortunately we don\u2019t have availability for '+routeTxt+' on '+dateTxt+(j.tm?' at '+j.tm:'')+', so we\u2019re unable to fulfil this booking on this occasion \u2014 we\u2019re sorry we can\u2019t help this time.');
+  l.push('');
+  l.push('Please don\u2019t hesitate to get in touch for any future journeys.');
+  l.push('');
+  l.push('Many thanks');
+  l.push('George Kennedy');
+  l.push('\ud83d\udcf2 07961 834 904 \u2014 WhatsApp');
+  return l.join('\n');
+}
+
+async function sendFullyBooked(id){
+  var j=jobs.find(function(x){return x.id===id;});if(!j)return;
+  if(!j.ph||j.ph==='\u2014')return;
+  if(!confirm('Send an apology to '+j.name+' and mark this booking unavailable?'))return;
+  var msg=buildFullyBookedMsg(j);
+  window.open(waHref(j.ph,msg));
+  j.status='cancelled';
+  j.notes=(j.notes?j.notes+'\n':'')+'Marked fully booked \u2014 no availability, apology sent '+fd(new Date().toISOString().slice(0,10));
+  await dbSave(j);
   refreshLists();
   renderJob();
 }
