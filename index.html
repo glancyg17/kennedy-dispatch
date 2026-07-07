@@ -877,6 +877,10 @@ function mkJR(j,cont){
   if(j.date)meta.push(j.date);
   if(j.tm)meta.push(j.tm);
   if(j.drv&&j.drv!=='TBC')meta.push(j.drv);
+  if(j.return_journey==='yes'){
+    var retLbl='\u21a9 '+(j.rd?fd(j.rd):'TBC')+(j.rt?' '+j.rt:'');
+    meta.push(retLbl);
+  }
   var col=vCol(j.veh,j.color_cat);
   var statusLabel=j.status==='new'?'New':j.status==='quoted'?'Quoted':j.status==='confirmed'?'Confirmed':j.status==='cancelled'?'Cancelled':'Done';
   el.innerHTML='<div style="flex:1;min-width:0"><div class="jn">'+e(j.name)+'</div><div class="jro">'+e(j.from)+' → '+e(j.to)+'</div><div class="jm">'+meta.join(' · ')+'</div></div>'
@@ -1118,33 +1122,33 @@ function renderJob(){
   h+='<div style="margin-top:8px"><label class="fl">Drop-off address</label><input class="fi" type="text" value="'+e(j.do||'')+'" placeholder="Town, postcode or destination..." onchange="updJRoute(&quot;do&quot;,this.value)"></div>';
 
   // Flight (airport only)
-  h+='<div class="cond-sec" id="jd-flight'+(j.occ==='airport'?' vis':'')+'"><div style="margin-top:12px"><label class="fl">Outbound flight number</label><input class="fi" type="text" value="'+e(j.fl||'')+'" placeholder="e.g. EZY2241" onchange="updJ(&quot;fl&quot;,this.value)"></div></div>';
+  h+='<div class="cond-sec'+(j.occ==='airport'?' vis':'')+'" id="jd-flight"><div style="margin-top:12px"><label class="fl">Outbound flight number</label><input class="fi" type="text" value="'+e(j.fl||'')+'" placeholder="e.g. EZY2241" onchange="updJ(&quot;fl&quot;,this.value)"></div></div>';
 
   // Wedding extra
-  h+='<div class="cond-sec" id="jd-wedding'+(j.occ==='wedding'?' vis':'')+'"><div style="margin-top:12px"><label class="fl">Wedding venue</label><input class="fi" type="text" value="'+e(j.wedding_venue||'')+'" placeholder="Venue name..." onchange="updJ(&quot;wedding_venue&quot;,this.value)"></div>';
+  h+='<div class="cond-sec'+(j.occ==='wedding'?' vis':'')+'" id="jd-wedding"><div style="margin-top:12px"><label class="fl">Wedding venue</label><input class="fi" type="text" value="'+e(j.wedding_venue||'')+'" placeholder="Venue name..." onchange="updJ(&quot;wedding_venue&quot;,this.value)"></div>';
   h+='<div><label class="fl">Number of vehicles needed</label><select class="fs" onchange="updJ(&quot;wedding_vehicles&quot;,this.value)"><option value="">Select</option>';
   ['1','2','3','4+'].forEach(function(v){h+='<option'+(j.wedding_vehicles===v?' selected':'')+'>'+v+'</option>';});
   h+='</select></div></div>';
 
   // Santa extra
-  h+='<div class="cond-sec" id="jd-santa'+(j.occ==='santa'?' vis':'')+'"><div style="margin-top:12px"><label class="fl">Number of children</label><select class="fs" onchange="updJ(&quot;num_children&quot;,this.value)"><option value="">Select</option>';
+  h+='<div class="cond-sec'+(j.occ==='santa'?' vis':'')+'" id="jd-santa"><div style="margin-top:12px"><label class="fl">Number of children</label><select class="fs" onchange="updJ(&quot;num_children&quot;,this.value)"><option value="">Select</option>';
   ['1','2','3','4','5'].forEach(function(v){h+='<option'+(j.num_children===v?' selected':'')+'>'+v+'</option>';});
   h+='</select></div>';
   h+='<div><label class="fl">Children\'s ages</label><input class="fi" type="text" value="'+e(j.children_ages||'')+'" placeholder="e.g. 3, 5, 7" onchange="updJ(&quot;children_ages&quot;,this.value)"></div>';
   h+='<div><label class="fl">Include Grinch chase?</label><select class="fs" onchange="updJ(&quot;grinch&quot;,this.value)"><option value="">Not sure yet</option><option value="yes"'+(j.grinch==='yes'?' selected':'')+'>Yes please!</option><option value="no"'+(j.grinch==='no'?' selected':'')+'>No thank you</option></select></div></div>';
 
   // Rental extra
-  h+='<div class="cond-sec" id="jd-rental'+(j.occ==='rental'?' vis':'')+'"><div style="margin-top:12px"><label class="fl">Driving licence number</label><input class="fi" type="text" value="'+e(j.licence||'')+'" placeholder="For rental verification" onchange="updJ(&quot;licence&quot;,this.value)"></div></div>';
+  h+='<div class="cond-sec'+(j.occ==='rental'?' vis':'')+'" id="jd-rental"><div style="margin-top:12px"><label class="fl">Driving licence number</label><input class="fi" type="text" value="'+e(j.licence||'')+'" placeholder="For rental verification" onchange="updJ(&quot;licence&quot;,this.value)"></div></div>';
 
   // Return journey
   var hasRet=j.return_journey==='yes';
   h+='<div class="divider"></div><div class="sec-head">Return journey</div>';
   h+='<label class="chk-row" style="margin-bottom:'+(hasRet?'12':'0')+'px"><input type="checkbox"'+(hasRet?' checked':'')+' id="jd-ret-chk" onchange="updJ(&quot;return_journey&quot;,this.checked?&quot;yes&quot;:&quot;&quot;);jShowRet()"><div><div class="chk-lbl">Include return journey</div><div class="chk-sub">Return pickup = outgoing drop-off</div></div></label>';
-  h+='<div class="cond-sec" id="jd-retfields'+(hasRet?' vis':'')+'">';
+  h+='<div class="cond-sec'+(hasRet?' vis':'')+'" id="jd-retfields">';
   h+='<div class="tc2"><div><label class="fl">Return date</label><input class="fi" type="date" value="'+e(j.rd||'')+'" onchange="updJ(&quot;rd&quot;,this.value)"></div>';
   h+='<div><label class="fl">Return time</label><input class="fi" type="time" value="'+e(j.rt||'')+'" onchange="updJ(&quot;rt&quot;,this.value)"></div></div>';
   h+='<div><label class="fl">Return drop-off</label><input class="fi" type="text" value="'+e(j.rp||j.pu||'')+'" placeholder="Defaults to outgoing pickup — change if different" onchange="updJ(&quot;rp&quot;,this.value)"></div>';
-  h+='<div class="cond-sec" id="jd-retflight'+(j.occ==='airport'?' vis':'')+'">';
+  h+='<div class="cond-sec'+(j.occ==='airport'?' vis':'')+'" id="jd-retflight">';
   h+='<div><label class="fl">Return flight number</label><input class="fi" type="text" value="'+e(j.return_flight||'')+'" placeholder="e.g. EZY2242" onchange="updJ(&quot;return_flight&quot;,this.value)"></div></div>';
   h+='</div>';
 
