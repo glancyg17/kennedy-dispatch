@@ -684,6 +684,17 @@ function vCol(v,cat){
 }
 
 // Also set color_cat when vehicle is selected on a new job
+// Maps older short vehicle names (used before the dispatch app's dropdown
+// was aligned with the website's exact names) to their current full names,
+// so jobs saved before this change still match correctly.
+var VEH_LEGACY_MAP={
+  'G-Wagon':'Mercedes G-Wagon','Maybach':'Mercedes Maybach','Cayenne':'Porsche Cayenne S',
+  'V-Class':'Mercedes V-Class','C-Class':'Mercedes C-Class',
+  'Standard / saloon':'Standard Taxi','People carrier':'People Carrier 5-8',
+  'Minibus 11':'Mini Bus 9-11 Seater','Minibus 14':'Mini Bus 12-14 Seater','Minibus 16':'Mini Bus 15-16 Seater'
+};
+function normalizeVeh(v){return VEH_LEGACY_MAP[v]||v;}
+
 function deriveColorCat(veh){
   var vl=(veh||'').toLowerCase();
   if(vl.indexOf('roll')>-1||vl.indexOf('royce')>-1)return'orange';
@@ -709,8 +720,10 @@ var AP_PRICES=[
   {airport:'Liverpool',pax:'5-8',std:'£449',vip:'£699',bus:'—'}
 ];
 var FLEET_CAPACITY={
-  'G-Wagon':1,'Maybach':1,'Audi SQ7':1,'V-Class':1,'C-Class':1,'Cayenne':1,
-  'Minibus 11':1,'Minibus 14':2,'Minibus 16':2
+  'Rolls-Royce Ghost':1,
+  'Mercedes G-Wagon':1,'Mercedes Maybach':1,'Audi SQ7':1,
+  'Mercedes V-Class':1,'Mercedes C-Class':1,'Porsche Cayenne S':1,
+  'Mini Bus 9-11 Seater':1,'Mini Bus 12-14 Seater':2,'Mini Bus 15-16 Seater':2
 };
 
 // Fleet details with MOT and insurance expiry dates
@@ -1094,7 +1107,7 @@ function renderJob(){
   Object.keys(occLabels).forEach(function(v){h+='<option value="'+v+'"'+(j.occ===v?' selected':'')+'>'+occLabels[v]+'</option>';});
   h+='</select></div>';
   h+='<div><label class="fl">Vehicle preference</label><select class="fs" id="jd-veh" onchange="updJ(&quot;veh&quot;,this.value);renderAvailWarn()">';
-  ['','G-Wagon','Maybach','Audi SQ7','V-Class','C-Class','Cayenne','Standard / saloon','People carrier','Minibus 11','Minibus 14','Minibus 16'].forEach(function(v){h+='<option value="'+v+'"'+(j.veh===v?' selected':'')+'>'+(v||'Not sure / any vehicle')+'</option>';});
+  ['','Rolls-Royce Ghost','Mercedes G-Wagon','Mercedes Maybach','Audi SQ7','Mercedes V-Class','Mercedes C-Class','Porsche Cayenne S','Standard Taxi','People Carrier 5-8','Mini Bus 9-11 Seater','Mini Bus 12-14 Seater','Mini Bus 15-16 Seater','BMW 3 Series M-Sport','VW EOS'].forEach(function(v){h+='<option value="'+v+'"'+(normalizeVeh(j.veh)===v?' selected':'')+'>'+(v||'Not sure / any vehicle')+'</option>';});
   h+='</select></div>';
   h+='<div class="avail-warn" id="jd-avail-warn"></div>';
   h+='<div><label class="fl">Passengers</label><select class="fs" onchange="updJ(&quot;pax&quot;,this.value)"><option value="">Select</option>';
@@ -1349,10 +1362,11 @@ function addReturnLeg(id){
 }
 
 function checkAvailability(veh,ds,excludeId){
-  if(!veh||!ds||!FLEET_CAPACITY[veh])return[];
-  var cap=FLEET_CAPACITY[veh];
+  var nveh=normalizeVeh(veh);
+  if(!nveh||!ds||!FLEET_CAPACITY[nveh])return[];
+  var cap=FLEET_CAPACITY[nveh];
   var sameDay=jobs.filter(function(x){
-    return x.veh===veh&&x.ds===ds&&(x.status==='confirmed'||x.status==='done')&&x.id!==excludeId;
+    return normalizeVeh(x.veh)===nveh&&x.ds===ds&&(x.status==='confirmed'||x.status==='done')&&x.id!==excludeId;
   });
   if(sameDay.length>=cap)return sameDay;
   return[];
@@ -2346,9 +2360,15 @@ function jobToDb(j){
 }
 async function sbFetch(table, params){
   var url=SUPA_URL+'/rest/v1/'+table+'?'+params;
-  var r=await fetch(url,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'}});
-  if(!r.ok)throw new Error('HTTP '+r.status+' on '+table);
-  return r.json();
+  var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+  var timer=ctrl?setTimeout(function(){ctrl.abort();},12000):null;
+  try{
+    var r=await fetch(url,{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'},signal:ctrl?ctrl.signal:undefined});
+    if(!r.ok)throw new Error('HTTP '+r.status+' on '+table);
+    return r.json();
+  } finally {
+    if(timer)clearTimeout(timer);
+  }
 }
 
 // Any confirmed job whose date has passed is treated as done automatically —
@@ -2669,14 +2689,27 @@ function pwInit(){
 }
 
 async function init(){
-  setChrome('d');
-  // Ensure there's always a history state to intercept
-  history.replaceState({ket:'d'},'',location.href);
   showLoading();
-  await dbLoadAll();
-  hideLoading();
-  buildDash();buildPipeline();buildBookings();buildStDrvs();buildStFleet();buildStPricing();
-  subscribeRealtime();
+  try{
+    setChrome('d');
+    // Ensure there's always a history state to intercept
+    history.replaceState({ket:'d'},'',location.href);
+    try{
+      await dbLoadAll();
+    }catch(err){
+      console.error('init: dbLoadAll failed:',err&&(err.message||err));
+    }
+    try{
+      buildDash();buildPipeline();buildBookings();buildStDrvs();buildStFleet();buildStPricing();
+    }catch(err){
+      console.error('init: render failed:',err&&(err.message||err));
+    }
+    try{subscribeRealtime();}catch(err){console.error('init: subscribeRealtime failed:',err);}
+  }catch(err){
+    console.error('init: fatal error:',err&&(err.message||err));
+  }finally{
+    hideLoading();
+  }
 }
 // Swipe for calendar (month + day)
 (function(){
