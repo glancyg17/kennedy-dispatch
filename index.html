@@ -1108,7 +1108,23 @@ function renderJob(){
   Object.keys(occLabels).forEach(function(v){h+='<option value="'+v+'"'+(j.occ===v?' selected':'')+'>'+occLabels[v]+'</option>';});
   h+='</select></div>';
   h+='<div><label class="fl">Vehicle preference</label><select class="fs" id="jd-veh" onchange="updJ(&quot;veh&quot;,this.value);renderAvailWarn()">';
-  ['','Rolls-Royce Ghost','Mercedes G-Wagon','Mercedes Maybach','Audi SQ7','Mercedes V-Class','Mercedes C-Class','Porsche Cayenne S','Standard Taxi','People Carrier 5-8','People Carrier XXL','Mini Bus 9-11 Seater','Mini Bus 12-14 Seater','Mini Bus 15-16 Seater'].forEach(function(v){h+='<option value="'+v+'"'+(normalizeVeh(j.veh)===v?' selected':'')+'>'+(v||'Not sure / any vehicle')+'</option>';});
+  var vehOptions=[
+    {v:'',l:'Not sure / any vehicle'},
+    {v:'Rolls-Royce Ghost',l:'Rolls-Royce Ghost'},
+    {v:'Mercedes G-Wagon',l:'Mercedes G-Wagon'},
+    {v:'Mercedes Maybach',l:'Mercedes Maybach'},
+    {v:'Audi SQ7',l:'Audi SQ7'},
+    {v:'Mercedes V-Class',l:'Mercedes V-Class'},
+    {v:'Mercedes C-Class',l:'Mercedes C-Class'},
+    {v:'Porsche Cayenne S',l:'Porsche Cayenne S'},
+    {v:'Standard Taxi',l:'Standard Taxi — 1-4 Passengers'},
+    {v:'People Carrier 5-8',l:'People Carrier — 5-8 Passengers'},
+    {v:'People Carrier XXL',l:'People Carrier XXL — 5-8 Passengers (Extra Luggage)'},
+    {v:'Mini Bus 9-11 Seater',l:'Mini Bus — 9-11 Passengers'},
+    {v:'Mini Bus 12-14 Seater',l:'Mini Bus — 12-14 Passengers'},
+    {v:'Mini Bus 15-16 Seater',l:'Mini Bus — 15-16 Passengers'}
+  ];
+  vehOptions.forEach(function(o){h+='<option value="'+o.v+'"'+(normalizeVeh(j.veh)===o.v?' selected':'')+'>'+o.l+'</option>';});
   h+='</select></div>';
   h+='<div class="avail-warn" id="jd-avail-warn"></div>';
   h+='<div><label class="fl">Passengers</label><select class="fs" onchange="updJ(&quot;pax&quot;,this.value)"><option value="">Select</option>';
