@@ -552,7 +552,7 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
     <div><label class="fl">Phone number</label><input class="fi" id="fp" type="tel" placeholder="+44..."></div>
     <div><label class="fl">WhatsApp number <span style="font-weight:400;color:var(--txt3)">(if different)</span></label><input class="fi" id="fwa" type="tel" placeholder="Leave blank if same as phone number"></div>
     <div><label class="fl">Channel</label><select class="fs" id="fch"><option>Phone call</option><option>WhatsApp</option><option>Facebook</option><option>Website form</option></select></div>
-    <div><label class="fl">Occasion</label><select class="fs" id="focc"><option value="">Select...</option><option value="airport">Airport transfer</option><option value="wedding">Wedding</option><option value="prom">Prom / Party</option><option value="concert">Concert / Event</option><option value="corporate">Corporate</option><option value="golf">Golf</option><option value="tour">Private tour</option><option value="santa">Santa VIP visit</option><option value="rental">Self-drive rental</option><option value="other">Other</option></select></div>
+    <div><label class="fl">Occasion</label><select class="fs" id="focc"><option value="">Select...</option><option value="airport">Airport transfer</option><option value="wedding">Wedding</option><option value="prom">Prom / Party</option><option value="concert">Concert / Event</option><option value="corporate">Corporate</option><option value="golf">Golf</option><option value="tour">Private tour</option><option value="santa">Santa VIP visit</option><option value="other">Other</option></select></div>
     <div class="divider"></div><div class="sec-head">Route (if known)</div>
     <div><label class="fl">Pickup</label><input class="fi" id="fpu" type="text" placeholder="Town or postcode..."></div>
     <div><label class="fl">Destination</label><input class="fi" id="fdst" type="text" placeholder="Town or postcode..."></div>
@@ -1047,7 +1047,7 @@ function renderJob(){
   var calUrl='https://calendar.google.com/calendar/r/eventedit?text='+calT+'&details='+calD+'&'+CP;
   var iWA=waHref(j.dp,sh);
   var stH='';(j.stops||[]).forEach(function(s,i){stH+='<div class="dr"><span class="dl">Stop '+(i+2)+'</span><span class="dv">'+e(s)+'</span></div>';});
-  var occLabels={airport:'Airport transfer',wedding:'Wedding',prom:'Prom / Party',concert:'Concert / Event',corporate:'Corporate',golf:'Golf',tour:'Private tour',santa:'Santa VIP',rental:'Self-drive rental',other:'Other'};
+  var occLabels={airport:'Airport transfer',wedding:'Wedding',prom:'Prom / Party',concert:'Concert / Event',corporate:'Corporate',golf:'Golf',tour:'Private tour',santa:'Santa VIP',other:'Other'};
 
   var h='';
 
@@ -1108,7 +1108,7 @@ function renderJob(){
   Object.keys(occLabels).forEach(function(v){h+='<option value="'+v+'"'+(j.occ===v?' selected':'')+'>'+occLabels[v]+'</option>';});
   h+='</select></div>';
   h+='<div><label class="fl">Vehicle preference</label><select class="fs" id="jd-veh" onchange="updJ(&quot;veh&quot;,this.value);renderAvailWarn()">';
-  ['','Rolls-Royce Ghost','Mercedes G-Wagon','Mercedes Maybach','Audi SQ7','Mercedes V-Class','Mercedes C-Class','Porsche Cayenne S','Standard Taxi','People Carrier 5-8','People Carrier XXL','Mini Bus 9-11 Seater','Mini Bus 12-14 Seater','Mini Bus 15-16 Seater','BMW 3 Series M-Sport','VW EOS'].forEach(function(v){h+='<option value="'+v+'"'+(normalizeVeh(j.veh)===v?' selected':'')+'>'+(v||'Not sure / any vehicle')+'</option>';});
+  ['','Rolls-Royce Ghost','Mercedes G-Wagon','Mercedes Maybach','Audi SQ7','Mercedes V-Class','Mercedes C-Class','Porsche Cayenne S','Standard Taxi','People Carrier 5-8','People Carrier XXL','Mini Bus 9-11 Seater','Mini Bus 12-14 Seater','Mini Bus 15-16 Seater'].forEach(function(v){h+='<option value="'+v+'"'+(normalizeVeh(j.veh)===v?' selected':'')+'>'+(v||'Not sure / any vehicle')+'</option>';});
   h+='</select></div>';
   h+='<div class="avail-warn" id="jd-avail-warn"></div>';
   h+='<div><label class="fl">Passengers</label><select class="fs" onchange="updJ(&quot;pax&quot;,this.value)"><option value="">Select</option>';
@@ -1152,7 +1152,7 @@ function renderJob(){
   h+='<div><label class="fl">Include Grinch chase?</label><select class="fs" onchange="updJ(&quot;grinch&quot;,this.value)"><option value="">Not sure yet</option><option value="yes"'+(j.grinch==='yes'?' selected':'')+'>Yes please!</option><option value="no"'+(j.grinch==='no'?' selected':'')+'>No thank you</option></select></div></div>';
 
   // Rental extra
-  h+='<div class="cond-sec'+(j.occ==='rental'?' vis':'')+'" id="jd-rental"><div style="margin-top:12px"><label class="fl">Driving licence number</label><input class="fi" type="text" value="'+e(j.licence||'')+'" placeholder="For rental verification" onchange="updJ(&quot;licence&quot;,this.value)"></div></div>';
+
 
   // Return journey
   var hasRet=j.return_journey==='yes';
@@ -1322,7 +1322,6 @@ function jShowCond(){
   var fl=document.getElementById('jd-flight');if(fl)fl.className='cond-sec'+(occ==='airport'?' vis':'');
   var wd=document.getElementById('jd-wedding');if(wd)wd.className='cond-sec'+(occ==='wedding'?' vis':'');
   var sn=document.getElementById('jd-santa');if(sn)sn.className='cond-sec'+(occ==='santa'?' vis':'');
-  var rn=document.getElementById('jd-rental');if(rn)rn.className='cond-sec'+(occ==='rental'?' vis':'');
   var rf=document.getElementById('jd-retflight');if(rf)rf.className='cond-sec'+(occ==='airport'?' vis':'');
 }
 function jShowRet(){
@@ -2438,7 +2437,7 @@ function subscribeRealtime(){
 var updJTimer=null;
 
 function renderJobView(j){
-  var occLabels={airport:'Airport transfer',wedding:'Wedding',prom:'Prom / Party',concert:'Concert / Event',corporate:'Corporate',golf:'Golf',tour:'Private tour',santa:'Santa VIP',rental:'Self-drive rental',other:'Other'};
+  var occLabels={airport:'Airport transfer',wedding:'Wedding',prom:'Prom / Party',concert:'Concert / Event',corporate:'Corporate',golf:'Golf',tour:'Private tour',santa:'Santa VIP',other:'Other'};
   var sh=mkSheet(j);
   var iWA=waHref(j.dp,sh);
   var waC=waHref(custWa(j));
