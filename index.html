@@ -678,7 +678,7 @@ function vCol(v,cat){
   if(!v)return'#2d6db5';
   var vl=v.toLowerCase();
   if(vl.indexOf('roll')>-1||vl.indexOf('royce')>-1)return'#e8820c';
-  if(vl.indexOf('minibus')>-1||vl.indexOf('mini bus')>-1)return'#c8a000';
+  if(vl.indexOf('minibus')>-1||vl.indexOf('mini bus')>-1||vl.indexOf('xxl')>-1)return'#c8a000';
   if(vl.indexOf('g-wagon')>-1||vl.indexOf('maybach')>-1||vl.indexOf('sq7')>-1||vl.indexOf('cayenne')>-1||vl.indexOf('v-class')>-1||vl.indexOf('c-class')>-1)return'#9e1c1c';
   return'#2d6db5';
 }
@@ -698,7 +698,7 @@ function normalizeVeh(v){return VEH_LEGACY_MAP[v]||v;}
 function deriveColorCat(veh){
   var vl=(veh||'').toLowerCase();
   if(vl.indexOf('roll')>-1||vl.indexOf('royce')>-1)return'orange';
-  if(vl.indexOf('minibus')>-1||vl.indexOf('mini bus')>-1)return'yellow';
+  if(vl.indexOf('minibus')>-1||vl.indexOf('mini bus')>-1||vl.indexOf('xxl')>-1)return'yellow';
   if(vl.indexOf('g-wagon')>-1||vl.indexOf('maybach')>-1||vl.indexOf('sq7')>-1||vl.indexOf('cayenne')>-1||vl.indexOf('v-class')>-1||vl.indexOf('c-class')>-1)return'red';
   return'blue';
 }
@@ -723,6 +723,7 @@ var FLEET_CAPACITY={
   'Rolls-Royce Ghost':1,
   'Mercedes G-Wagon':1,'Mercedes Maybach':1,'Audi SQ7':1,
   'Mercedes V-Class':1,'Mercedes C-Class':1,'Porsche Cayenne S':1,
+  'People Carrier XXL':1,
   'Mini Bus 9-11 Seater':1,'Mini Bus 12-14 Seater':2,'Mini Bus 15-16 Seater':2
 };
 
@@ -1107,7 +1108,7 @@ function renderJob(){
   Object.keys(occLabels).forEach(function(v){h+='<option value="'+v+'"'+(j.occ===v?' selected':'')+'>'+occLabels[v]+'</option>';});
   h+='</select></div>';
   h+='<div><label class="fl">Vehicle preference</label><select class="fs" id="jd-veh" onchange="updJ(&quot;veh&quot;,this.value);renderAvailWarn()">';
-  ['','Rolls-Royce Ghost','Mercedes G-Wagon','Mercedes Maybach','Audi SQ7','Mercedes V-Class','Mercedes C-Class','Porsche Cayenne S','Standard Taxi','People Carrier 5-8','Mini Bus 9-11 Seater','Mini Bus 12-14 Seater','Mini Bus 15-16 Seater','BMW 3 Series M-Sport','VW EOS'].forEach(function(v){h+='<option value="'+v+'"'+(normalizeVeh(j.veh)===v?' selected':'')+'>'+(v||'Not sure / any vehicle')+'</option>';});
+  ['','Rolls-Royce Ghost','Mercedes G-Wagon','Mercedes Maybach','Audi SQ7','Mercedes V-Class','Mercedes C-Class','Porsche Cayenne S','Standard Taxi','People Carrier 5-8','People Carrier XXL','Mini Bus 9-11 Seater','Mini Bus 12-14 Seater','Mini Bus 15-16 Seater','BMW 3 Series M-Sport','VW EOS'].forEach(function(v){h+='<option value="'+v+'"'+(normalizeVeh(j.veh)===v?' selected':'')+'>'+(v||'Not sure / any vehicle')+'</option>';});
   h+='</select></div>';
   h+='<div class="avail-warn" id="jd-avail-warn"></div>';
   h+='<div><label class="fl">Passengers</label><select class="fs" onchange="updJ(&quot;pax&quot;,this.value)"><option value="">Select</option>';
