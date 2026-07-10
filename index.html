@@ -803,7 +803,7 @@ function mkSheet(j){
   (j.stops||[]).forEach(function(s,i){l.push('Stop '+(i+2)+': '+s);});
   l.push('');l.push('DROP-OFF');l.push(j.do||'TBC');
   if(j.fl)l.push('Flight: '+j.fl);
-  if(j.rd){l.push('');l.push('RETURN: '+j.rd+(j.rt?' · '+j.rt:''));if(j.rp)l.push('Return pickup: '+j.rp);}
+  if(j.rd){l.push('');l.push('RETURN: '+j.rd+(j.rt?' · '+j.rt:''));if(j.rp)l.push('Return pickup: '+j.rp);if(j.return_flight)l.push('Return flight: '+j.return_flight);if(j.return_airport)l.push('Return airport: '+j.return_airport);}
   l.push('');l.push('CUSTOMER');l.push(j.name);if(j.ph&&j.ph!=='—')l.push(j.ph);
   if(j.wa_ph&&j.wa_ph!==j.ph)l.push('WhatsApp: '+j.wa_ph);
   if(j.notes){l.push('');l.push('NOTES');l.push(j.notes);}
@@ -1179,7 +1179,8 @@ function renderJob(){
   h+='<div><label class="fl">Return time</label><input class="fi" type="time" value="'+e(j.rt||'')+'" onchange="updJ(&quot;rt&quot;,this.value)"></div></div>';
   h+='<div><label class="fl">Return drop-off</label><input class="fi" type="text" value="'+e(j.rp||j.pu||'')+'" placeholder="Defaults to outgoing pickup — change if different" onchange="updJ(&quot;rp&quot;,this.value)"></div>';
   h+='<div class="cond-sec'+(j.occ==='airport'?' vis':'')+'" id="jd-retflight">';
-  h+='<div><label class="fl">Return flight number</label><input class="fi" type="text" value="'+e(j.return_flight||'')+'" placeholder="e.g. EZY2242" onchange="updJ(&quot;return_flight&quot;,this.value)"></div></div>';
+  h+='<div><label class="fl">Return flight number</label><input class="fi" type="text" value="'+e(j.return_flight||'')+'" placeholder="e.g. EZY2242" onchange="updJ(&quot;return_flight&quot;,this.value)"></div>';
+  h+='<div style="margin-top:12px"><label class="fl">Return airport <span style="font-weight:400;color:var(--txt3)">(if different)</span></label><input class="fi" type="text" value="'+e(j.return_airport||'')+'" placeholder="Leave blank if same as outgoing airport" onchange="updJ(&quot;return_airport&quot;,this.value)"></div></div>';
   h+='</div>';
 
   // Price & quote
@@ -1422,7 +1423,7 @@ function buildQuoteMsg(j){
   l.push('');
   var routeTxt=(j.from&&j.to&&j.from!=='?')?(j.from+' \u2192 '+j.to):(j.occ?j.occ:'your journey');
   var dateTxt=j.date||fd(j.ds)||'your requested date';
-  l.push('Your quote for '+routeTxt+' on '+dateTxt+' is *'+j.pr+'*.');
+  l.push('Your quote for '+routeTxt+' on '+dateTxt+' is '+j.pr+'.');
   l.push('');
   l.push('If you wish to book and confirm our service we require a 50% booking deposit. To confirm the booking our bank details are below:');
   l.push('');
@@ -1437,7 +1438,7 @@ function buildQuoteMsg(j){
   l.push('A few important notes:');
   l.push('\u2022 Additional pick ups/drop offs outwith the arranged pick up and drop off will incur an additional charge.');
   l.push('\u2022 Bookings between 23:00 and 06:00 incur an unsociable hours charge of \u00a320.');
-  l.push('\u2022 *Cancellation policy:* we ask for 48 hours\u2019 notice of any cancellation. Cancellations outwith 48 hours will need to be rebooked with a new deposit paid.');
+  l.push('\u2022 Cancellation policy: we ask for 48 hours\u2019 notice of any cancellation. Cancellations outwith 48 hours will need to be rebooked with a new deposit paid.');
   l.push('\u2022 If you\u2019re not out within 15 minutes of your booked time with no communication, we\u2019ll need to leave to make other bookings (no refund, as the journey has been made) \u2014 unless authorised and confirmed with the driver. If you have made contact, a waiting charge will apply instead. This doesn\u2019t apply to return airport hires, as we keep an eye on your return flight for any delays.');
   l.push('');
   l.push('Many thanks');
@@ -1516,7 +1517,7 @@ function buildBalanceReminderMsg(j){
   var routeTxt=(j.from&&j.to&&j.from!=='?')?(j.from+' \u2192 '+j.to):(j.occ?j.occ:'your journey');
   l.push(routeTxt+' on '+(j.date||fd(j.ds)||'the arranged date')+(j.tm?' at '+j.tm:''));
   l.push('');
-  l.push('The remaining balance of *'+fmtMoney(balanceAmt(j))+'* is due. You can either:');
+  l.push('The remaining balance of '+fmtMoney(balanceAmt(j))+' is due. You can either:');
   l.push('');
   l.push('1) Pay by bank transfer to:');
   l.push('Sort code: 20-29-24');
@@ -1666,9 +1667,9 @@ function openCalEntry(j){
 
 async function createReturnJob(j){
   var retId='ret-'+(++idX);
-  // Return pickup = outgoing drop-off (always)
+  // Return pickup = outgoing drop-off, unless a different return airport was specified
   // Return drop-off = j.rp if set, otherwise outgoing pickup
-  var retPu=j.do||'';
+  var retPu=j.return_airport||j.do||'';
   var retDo=j.rp||j.pu||'';
   var rj={
     id:retId,
@@ -2327,7 +2328,7 @@ function dbToJob(r){
     ds:r.job_date||'',tm:r.job_time?r.job_time.slice(0,5):'',
     date:r.job_date?fd(r.job_date):'',
     car_seat:r.car_seat||false,trailer:r.trailer||false,
-    fl:r.flight||'',return_flight:r.return_flight||'',
+    fl:r.flight||'',return_flight:r.return_flight||'',return_airport:r.return_airport||'',
     return_journey:r.return_journey||'',
     rd:r.return_date||'',rt:r.return_time?r.return_time.slice(0,5):'',
     rp:r.return_dropoff||'',
@@ -2357,7 +2358,7 @@ function jobToDb(j){
     pickup:j.pu||null,dropoff:j.do||null,stops:j.stops||[],
     job_date:j.ds||null,job_time:j.tm||null,
     car_seat:!!j.car_seat,trailer:!!j.trailer,
-    flight:j.fl||null,return_flight:j.return_flight||null,
+    flight:j.fl||null,return_flight:j.return_flight||null,return_airport:j.return_airport||null,
     return_journey:j.return_journey||'',
     return_date:j.rd||null,return_time:j.rt||null,return_dropoff:j.rp||null,
     wedding_venue:j.wedding_venue||null,wedding_vehicles:j.wedding_vehicles||null,
@@ -2519,6 +2520,7 @@ function renderJobView(j){
     h+=vf('Return time',j.rt);
     if(j.rp)h+=vf('Return drop-off',j.rp);
     if(j.return_flight)h+=vf('Return flight',j.return_flight);
+    if(j.return_airport)h+=vf('Return airport',j.return_airport);
     h+='</div>';
   }
   h+='</div>';
