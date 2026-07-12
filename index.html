@@ -390,6 +390,12 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .cancel-confirm-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .cancel-no{background:var(--surf2);border:0.5px solid var(--blt2);border-radius:var(--r);padding:10px;font-size:13px;font-weight:700;color:var(--txt2);cursor:pointer;font-family:inherit}
 .cancel-yes{background:#b02020;border:none;border-radius:var(--r);padding:10px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit}
+.delete-btn{width:100%;background:transparent;border:1px solid #b02020;border-radius:var(--r);padding:11px;font-size:13px;font-weight:600;color:#b02020;cursor:pointer;font-family:inherit;margin-top:8px}
+.delete-confirm{display:none;background:#fcebeb;border:1px solid #f5c6c6;border-radius:var(--r);padding:12px;margin-top:8px}
+.delete-confirm.vis{display:block}
+.delete-confirm-msg{font-size:13px;color:#7a0000;font-weight:600;margin-bottom:10px;line-height:1.5}
+.delete-confirm-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.delete-yes{background:#7a0000;border:none;border-radius:var(--r);padding:10px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit}
 .s-cancelled{background:#f0e0e0;color:#b02020}
 
 /* ── PASSWORD SCREEN ── */
@@ -1213,6 +1219,17 @@ function renderJob(){
   } else {
     h+='<div class="cancel-zone" style="text-align:center"><span class="sbdg s-cancelled">Cancelled</span></div>';
   }
+  // Delete permanently — always available, regardless of status. Unlike
+  // Cancel (which keeps the record for history), this removes the job
+  // from the database entirely. Mainly for clearing out duplicate entries.
+  h+='<div class="cancel-zone">';
+  h+='<button class="delete-btn" data-id="'+e(j.id)+'" onclick="showDeleteConfirm(this)">Delete permanently</button>';
+  h+='<div class="delete-confirm" id="delete-confirm-'+e(j.id)+'">';
+  h+='<div class="delete-confirm-msg">Delete this job permanently? This removes it from the database entirely and cannot be undone.'+(j.linked_id?'<br>The linked '+(j.is_return?'outbound':'return')+' job will also be deleted.':'')+'</div>';
+  h+='<div class="delete-confirm-btns">';
+  h+='<button class="cancel-no" data-id="'+e(j.id)+'" onclick="hideDeleteConfirm(this)">Keep it</button>';
+  h+='<button class="delete-yes" data-id="'+e(j.id)+'" onclick="confirmDelete(this)">Yes, delete permanently</button>';
+  h+='</div></div></div>';
 
   // Confirmed-only sections
   if(isConf){
@@ -1582,6 +1599,40 @@ function buildPaymentSection(j){
   return h;
 }
 
+function showDeleteConfirm(btn){
+  var id=btn.dataset.id;
+  var el=document.getElementById('delete-confirm-'+id);
+  if(el)el.classList.add('vis');
+}
+function hideDeleteConfirm(btn){
+  var id=btn.dataset.id;
+  var el=document.getElementById('delete-confirm-'+id);
+  if(el)el.classList.remove('vis');
+}
+async function confirmDelete(btn){
+  var id=btn.dataset.id;
+  var j=jobs.find(function(x){return x.id===id;});if(!j)return;
+  var idsToDelete=[id];
+  if(j.linked_id)idsToDelete.push(j.linked_id);
+  for(var i=0;i<idsToDelete.length;i++){
+    var did=idsToDelete[i];
+    // Never-saved local-only ids (created but not yet persisted) have nothing to delete server-side
+    if(!did||did.indexOf('j-')===0||did.indexOf('ret-')===0)continue;
+    try{
+      await fetch(SUPA_URL+'/rest/v1/jobs?id=eq.'+did,{
+        method:'DELETE',
+        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+      });
+    }catch(err){console.error('Delete job:',err);}
+  }
+  jobs=jobs.filter(function(x){return idsToDelete.indexOf(x.id)===-1;});
+  JOB_EDIT_MODE=false;JOB_SNAPSHOT=null;
+  var p=hist.pop()||'d';
+  SCREENS.forEach(function(n){var el=document.getElementById('s-'+n);if(el)el.className='scr'+(n===p?' on':'');});
+  setChrome(p);
+  cur=p;
+  refreshLists();
+}
 function showCancelConfirm(btn){
   var id=btn.dataset.id;
   var el=document.getElementById('cancel-confirm-'+id);
@@ -1595,8 +1646,16 @@ function hideCancelConfirm(btn){
 async function confirmCancel(btn){
   var id=btn.dataset.id;
   var j=jobs.find(function(x){return x.id===id;});if(!j)return;
+  var prevStatus=j.status;
   j.status='cancelled';
-  await dbSave(j);
+  var saved=await dbSave(j);
+  if(!saved){
+    j.status=prevStatus;
+    alert('Could not cancel this booking — the save failed. Please check your connection and try again.');
+    refreshLists();
+    renderJob();
+    return;
+  }
   // Cancel linked job too if exists
   if(j.linked_id){
     var linked=jobs.find(function(x){return x.id===j.linked_id;});
@@ -2434,7 +2493,7 @@ async function dbSave(j){
     var r=await fetch(url,{
       method:method,
       headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-      body:JSON.stringify(isTemp?data:[data])
+      body:JSON.stringify(data)
     });
     if(!r.ok){var t=await r.text();console.error('dbSave error:',r.status,t);return null;}
     var result=await r.json();
@@ -2577,6 +2636,17 @@ function renderJobView(j){
     h+='<div class="cancel-confirm-btns"><button class="cancel-no" data-id="'+e(j.id)+'" onclick="hideCancelConfirm(this)">Keep booking</button>';
     h+='<button class="cancel-yes" data-id="'+e(j.id)+'" onclick="confirmCancel(this)">Yes, cancel it</button></div></div></div>';
   }
+  // Delete permanently — always available, regardless of status. Unlike
+  // Cancel (which keeps the record for history), this removes the job
+  // from the database entirely. Mainly for clearing out duplicate entries.
+  h+='<div class="cancel-zone">';
+  h+='<button class="delete-btn" data-id="'+e(j.id)+'" onclick="showDeleteConfirm(this)">Delete permanently</button>';
+  h+='<div class="delete-confirm" id="delete-confirm-'+e(j.id)+'">';
+  h+='<div class="delete-confirm-msg">Delete this job permanently? This removes it from the database entirely and cannot be undone.'+(j.linked_id?'<br>The linked job will also be deleted.':'')+'</div>';
+  h+='<div class="delete-confirm-btns">';
+  h+='<button class="cancel-no" data-id="'+e(j.id)+'" onclick="hideDeleteConfirm(this)">Keep it</button>';
+  h+='<button class="delete-yes" data-id="'+e(j.id)+'" onclick="confirmDelete(this)">Yes, delete permanently</button>';
+  h+='</div></div></div>';
 
   document.getElementById('jcont').innerHTML=h;
   renderAvailWarn();
