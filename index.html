@@ -106,7 +106,18 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
 .te{font-size:13px;color:#8a8080;padding:6px 0 14px;font-style:italic}
 
 /* ── JOB ROWS ── */
-.jr{padding:10px 16px 10px 12px;border-bottom:0.5px solid var(--blt);display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:10px;border-left:4px solid transparent}
+.jr{padding:10px 16px 10px 12px;border-bottom:0.5px solid var(--blt);display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:10px;border-left:4px solid transparent;position:relative;-webkit-user-select:none;user-select:none}
+.jr-check{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--blt2);background:var(--surf2);display:none;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700;flex-shrink:0}
+#plist.selmode .jr-check{display:flex}
+#plist.selmode .jr{padding-right:38px}
+.jr.selected{background:rgba(158,28,28,.08)}
+.jr.selected .jr-check{background:var(--red);border-color:var(--red)}
+.pipe-selbar{position:fixed;left:0;right:0;bottom:0;background:var(--blk);border-top:0.5px solid var(--blt);padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:none;align-items:center;gap:10px;z-index:500}
+.pipe-selbar-x{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:4px 8px;font-family:inherit}
+.pipe-selbar-count{color:#fff;font-size:13px;font-weight:700;flex:1}
+.pipe-selbar-btn{border:none;border-radius:var(--r);padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.pipe-selbar-btn.cancel{background:var(--surf2);color:var(--txt2)}
+.pipe-selbar-btn.delete{background:#7a0000;color:#fff}
 .jr:active{background:var(--surf2)}
 .jn{font-size:14px;font-weight:700;color:var(--txt)}
 .jro{font-size:12px;font-weight:600;color:var(--red);margin-top:2px}
@@ -532,6 +543,12 @@ html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSys
     <button class="chip" onclick="filterP(this,'quoted')">Quoted</button>
   </div>
   <div id="plist"></div>
+  <div class="pipe-selbar" id="pipe-selbar">
+    <button class="pipe-selbar-x" onclick="exitMultiSelect()">✕</button>
+    <span class="pipe-selbar-count" id="pipe-selbar-count">0 selected</span>
+    <button class="pipe-selbar-btn cancel" onclick="bulkCancelSelected()">Cancel</button>
+    <button class="pipe-selbar-btn delete" onclick="bulkDeleteSelected()">Delete</button>
+  </div>
 </div>
 
 <!-- BOOKINGS -->
@@ -890,9 +907,22 @@ function mkTC(j,cont){
   if(!ins)cont.appendChild(el);return el;
 }
 
-function mkJR(j,cont){
+function mkJR(j,cont,selectable){
   var el=document.createElement('div');el.className='jr';el.dataset.jid=j.id;el.dataset.status=j.status;el.dataset.ds=j.ds;
-  el.onclick=function(){openJob(j.id);};
+  if(selectable){
+    el.addEventListener('pointerdown',function(){pipeLongPressStart(j.id,el);});
+    el.addEventListener('pointerup',function(){pipeLongPressCancel(el);});
+    el.addEventListener('pointerleave',function(){pipeLongPressCancel(el);});
+    el.addEventListener('pointermove',function(){pipeLongPressCancel(el);});
+    el.addEventListener('pointercancel',function(){pipeLongPressCancel(el);});
+    el.onclick=function(){
+      if(el._lpFired){el._lpFired=false;return;}
+      if(PIPE_SEL_MODE){toggleMultiSelectId(j.id);}
+      else{openJob(j.id);}
+    };
+  } else {
+    el.onclick=function(){openJob(j.id);};
+  }
   var meta=[];
   if(j.date)meta.push(j.date);
   if(j.tm)meta.push(j.tm);
@@ -903,9 +933,11 @@ function mkJR(j,cont){
   }
   var col=vCol(j.veh,j.color_cat);
   var statusLabel=j.status==='new'?'New':j.status==='quoted'?'Quoted':j.status==='confirmed'?'Confirmed':j.status==='cancelled'?'Cancelled':'Done';
-  el.innerHTML='<div style="flex:1;min-width:0"><div class="jn">'+e(j.name)+'</div><div class="jro">'+e(j.from)+' → '+e(j.to)+'</div><div class="jm">'+meta.join(' · ')+'</div></div>'
+  el.innerHTML=(selectable?'<div class="jr-check"></div>':'')
+    +'<div style="flex:1;min-width:0"><div class="jn">'+e(j.name)+'</div><div class="jro">'+e(j.from)+' → '+e(j.to)+'</div><div class="jm">'+meta.join(' · ')+'</div></div>'
     +'<div style="text-align:right;flex-shrink:0"><div class="vt">'+e(j.veh||'TBC')+'</div><span class="sbdg s-'+j.status+'" style="display:block;margin-top:4px">'+statusLabel+'</span></div>';
   el.style.setProperty('border-left-color',col,'important');
+  if(selectable&&PIPE_SEL_IDS.indexOf(j.id)>-1)el.classList.add('selected');
   cont.appendChild(el);return el;
 }
 
@@ -983,7 +1015,8 @@ function buildDash(){
 function buildPipeline(){
   var pl=document.getElementById('plist');pl.innerHTML='';
   var pj=jobs.filter(function(j){return (j.status==='new'||j.status==='quoted')&&j.status!=='cancelled';}).sort(function(a,b){return(a.ds||'zzz')>(b.ds||'zzz')?1:-1;});
-  pj.forEach(function(j){mkJR(j,pl);});
+  pj.forEach(function(j){mkJR(j,pl,true);});
+  renderPipeSelUI();
 }
 
 function filterP(btn,s){
@@ -991,6 +1024,83 @@ function filterP(btn,s){
   document.querySelectorAll('#plist .jr').forEach(function(r){
     r.style.display=(s==='all'||r.dataset.status===s)?'flex':'none';
   });
+}
+
+/* ── PIPELINE MULTI-SELECT ── */
+var PIPE_SEL_MODE=false;
+var PIPE_SEL_IDS=[];
+var PIPE_LP_MS=500;
+
+function pipeLongPressStart(id,el){
+  pipeLongPressCancel(el);
+  el._lpTimer=setTimeout(function(){
+    el._lpTimer=null;
+    el._lpFired=true;
+    if(navigator.vibrate)navigator.vibrate(15);
+    if(!PIPE_SEL_MODE){PIPE_SEL_MODE=true;PIPE_SEL_IDS=[];}
+    toggleMultiSelectId(id);
+  },PIPE_LP_MS);
+}
+function pipeLongPressCancel(el){
+  if(el._lpTimer){clearTimeout(el._lpTimer);el._lpTimer=null;}
+}
+function toggleMultiSelectId(id){
+  var idx=PIPE_SEL_IDS.indexOf(id);
+  if(idx>-1)PIPE_SEL_IDS.splice(idx,1);
+  else PIPE_SEL_IDS.push(id);
+  if(PIPE_SEL_IDS.length===0){exitMultiSelect();return;}
+  renderPipeSelUI();
+}
+function exitMultiSelect(){
+  PIPE_SEL_MODE=false;
+  PIPE_SEL_IDS=[];
+  renderPipeSelUI();
+}
+function renderPipeSelUI(){
+  var pl=document.getElementById('plist');
+  if(pl)pl.classList.toggle('selmode',PIPE_SEL_MODE);
+  var bar=document.getElementById('pipe-selbar');
+  if(bar)bar.style.display=PIPE_SEL_MODE?'flex':'none';
+  var count=document.getElementById('pipe-selbar-count');
+  if(count)count.textContent=PIPE_SEL_IDS.length+' selected';
+  document.querySelectorAll('#plist .jr').forEach(function(elx){
+    elx.classList.toggle('selected',PIPE_SEL_IDS.indexOf(elx.dataset.jid)>-1);
+  });
+}
+async function bulkCancelSelected(){
+  if(!PIPE_SEL_IDS.length)return;
+  var ids=PIPE_SEL_IDS.slice();
+  if(!confirm('Cancel '+ids.length+' selected booking'+(ids.length!==1?'s':'')+'?'))return;
+  var failed=0;
+  for(var i=0;i<ids.length;i++){
+    var j=jobs.find(function(x){return x.id===ids[i];});
+    if(!j)continue;
+    var prevStatus=j.status;
+    j.status='cancelled';
+    var saved=await dbSave(j);
+    if(!saved){j.status=prevStatus;failed++;}
+  }
+  exitMultiSelect();
+  refreshLists();
+  if(failed)alert(failed+' booking'+(failed!==1?'s':'')+' could not be cancelled — please check your connection and try again.');
+}
+async function bulkDeleteSelected(){
+  if(!PIPE_SEL_IDS.length)return;
+  var ids=PIPE_SEL_IDS.slice();
+  if(!confirm('Permanently delete '+ids.length+' selected booking'+(ids.length!==1?'s':'')+'? This cannot be undone.'))return;
+  for(var i=0;i<ids.length;i++){
+    var did=ids[i];
+    if(!did||did.indexOf('j-')===0||did.indexOf('ret-')===0)continue;
+    try{
+      await fetch(SUPA_URL+'/rest/v1/jobs?id=eq.'+did,{
+        method:'DELETE',
+        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
+      });
+    }catch(err){console.error('Bulk delete job:',err);}
+  }
+  jobs=jobs.filter(function(x){return ids.indexOf(x.id)===-1;});
+  exitMultiSelect();
+  refreshLists();
 }
 
 /* ── BOOKINGS ── */
